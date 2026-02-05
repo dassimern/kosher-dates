@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>פאנל מנהל - מסעדות כשרות</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .manager-header {
+            background: #ff6b6b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-container h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .status-pending {
+            background: #ffc107;
+            color: #000;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .status-approved {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .status-rejected {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .approve-btn, .reject-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .approve-btn {
+            background: #28a745;
+            color: white;
+        }
+        
+        .approve-btn:hover {
+            background: #218838;
+        }
+        
+        .reject-btn {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .reject-btn:hover {
+            background: #c82333;
+        }
+        
+        .logout-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .logout-btn:hover {
+            background: #5a6268;
+        }
+        
+        /* Shake animation for wrong password */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Loading overlay for actions */
+        .action-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+        
+        .action-overlay.show {
+            display: flex;
+        }
+        
+        .action-loader {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .action-loader .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid #e0e0e0;
+            border-top: 5px solid #667eea;
+            margin: 0 auto 20px;
+        }
+        
+        .action-loader p {
+            color: #333;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Success animation */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #28a745;
+            color: white;
+            padding: 30px 50px;
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            z-index: 3000;
+            display: none;
+            animation: successPop 0.5s ease;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        @keyframes successPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Screen -->
+        <div id="login-screen" class="login-container">
+            <h2>🔐 כניסת מנהל</h2>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="password">סיסמה</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="submit-btn" style="width: 100%;">כניסה</button>
+                <div id="login-error" class="form-message" style="display: none;"></div>
+            </form>
+        </div>
+
+        <!-- Manager Panel -->
+        <div id="manager-panel" style="display: none;">
+            <header>
+                <h1>🛡️ פאנל מנהל</h1>
+                <p class="subtitle">ניהול אישור מסעדות</p>
+            </header>
+
+            <div class="manager-header">
+                <button class="logout-btn" id="logout-btn">יציאה</button>
+            </div>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>טוען מסעדות...</p>
+            </div>
+
+            <div id="error" class="error" style="display: none;">
+                <p>שגיאה בטעינת המסעדות.</p>
+            </div>
+
+            <div id="restaurants-container" class="restaurants-grid">
+                <!-- Restaurants will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Loading Overlay -->
+    <div id="action-overlay" class="action-overlay">
+        <div class="action-loader">
+            <div class="spinner"></div>
+            <p id="action-message">מעדכן...</p>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div id="success-message" class="success-message"></div>
+
+    <script src="manager.js"></script>
+</body>
+</html>

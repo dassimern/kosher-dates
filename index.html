@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מסעדות כשרות</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍽️ מסעדות כשרות</h1>
+            <p class="subtitle">מדריך המסעדות הכשרות שלך</p>
+            <a href="manager.html" class="manager-link">
+                🔐 כניסת מנהל
+            </a>
+        </header>
+
+        <div class="add-button-container">
+            <button id="add-restaurant-btn" class="add-btn">
+                ➕ הוסף מסעדה חדשה
+            </button>
+        </div>
+
+        <!-- Add Restaurant Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>הוסף מסעדה חדשה</h2>
+                
+                <!-- Form Loading Overlay -->
+                <div id="form-loading" class="form-loading-overlay">
+                    <div class="spinner"></div>
+                    <p>שומר את המסעדה...</p>
+                </div>
+                
+                <form id="restaurant-form">
+                    <div class="form-group">
+                        <label for="restaurant-name">שם המסעדה *</label>
+                        <input type="text" id="restaurant-name" name="restaurantName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="website">אתר</label>
+                        <input type="url" id="website" name="website" placeholder="https://example.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kashrut">כשרות *</label>
+                        <select id="kashrut" name="kashrut" required>
+                            <option value="">-- בחר כשרות --</option>
+                            <option value='בד"ץ עדה חרדית'>בד"ץ עדה חרדית</option>
+                            <option value='בד"ץ חוג חת"ם סופר בני ברק'>בד"ץ חוג חת"ם סופר בני ברק</option>
+                            <option value='בד"ץ מהדרין ירושלים'>בד"ץ מהדרין ירושלים</option>
+                            <option value='בד"ץ שארית ישראל'>בד"ץ שארית ישראל</option>
+                            <option value="רבנות ראשית לישראל">רבנות ראשית לישראל</option>
+                            <option value="רבנות ירושלים">רבנות ירושלים</option>
+                            <option value="רבנות תל אביב">רבנות תל אביב</option>
+                            <option value="רבנות בני ברק">רבנות בני ברק</option>
+                            <option value="רבנות פתח תקווה">רבנות פתח תקווה</option>
+                            <option value="רבנות חיפה">רבנות חיפה</option>
+                            <option value="רבנות באר שבע">רבנות באר שבע</option>
+                            <option value="רבנות נתניה">רבנות נתניה</option>
+                            <option value="רבנות אשדוד">רבנות אשדוד</option>
+                            <option value="רבנות מקומית">רבנות מקומית</option>
+                            <option value="אחר">אחר</option>
+                        </select>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">שמור</button>
+                        <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
+                    </div>
+                </form>
+
+                <div id="form-message" class="form-message"></div>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>טוען מסעדות...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error" class="error" style="display: none;">
+            <p>שגיאה בטעינת המסעדות. אנא בדוק את ההגדרות.</p>
+        </div>
+
+        <!-- Restaurants List -->
+        <div id="restaurants-container" class="restaurants-grid">
+            <!-- Restaurants will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

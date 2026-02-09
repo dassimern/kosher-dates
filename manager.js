@@ -7,20 +7,39 @@ const CONFIG = {
 };
 
 let managerPassword = '';
+let sessionToken = '';
+
+// Simple hash function for session token (not cryptographically secure, but better than plain text)
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + 'kosher_salt_2026');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 // ====================================
 // LOGIN
 // ====================================
 
 // Check for saved session on page load
-window.addEventListener('DOMContentLoaded', function() {
-    const savedPassword = localStorage.getItem('managerPassword');
-    if (savedPassword) {
-        // Auto-login with saved password
-        managerPassword = savedPassword;
+window.addEventListener('DOMContentLoaded', async function() {
+    const savedToken = sessionStorage.getItem('managerSessionToken');
+    if (savedToken) {
+        // Verify session by attempting to load data
+        sessionToken = savedToken;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('manager-panel').style.display = 'block';
-        loadRestaurants();
+        
+        // Try to load - if it fails, session is invalid
+        try {
+            await loadRestaurants();
+        } catch (err) {
+            // Session expired or invalid - show login
+            sessionStorage.removeItem('managerSessionToken');
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('manager-panel').style.display = 'none';
+        }
     }
 });
 
@@ -35,7 +54,7 @@ document.getElementById('login-form').addEventListener('submit', async function(
     
     // Show loading state
     submitBtn.disabled = true;
-    submitBtn.textContent = 'בודק...';
+    submitBtn.textContent = 'Checking...';
     hideLoginError();
     
     // Add timeout to prevent hanging
@@ -51,8 +70,10 @@ document.getElementById('login-form').addEventListener('submit', async function(
         const result = await Promise.race([fetchPromise, timeoutPromise]);
         
         if (result.success) {
-            // Save password to localStorage for persistent login
-            localStorage.setItem('managerPassword', password);
+            // Generate session token (hash of password)
+            sessionToken = await hashPassword(password);
+            sessionStorage.setItem('managerSessionToken', sessionToken);
+            managerPassword = password;
             
             // Login successful
             document.getElementById('login-screen').style.display = 'none';
@@ -61,10 +82,10 @@ document.getElementById('login-form').addEventListener('submit', async function(
         } else {
             // Wrong password or error
             submitBtn.disabled = false;
-            submitBtn.textContent = 'כניסה';
+            submitBtn.textContent = 'Login';
             passwordInput.value = '';
             passwordInput.focus();
-            showLoginError('❌ סיסמה שגויה. נסה שוב.');
+            showLoginError('❌ Wrong password. Try again.');
             // Add shake animation
             passwordInput.style.animation = 'shake 0.5s';
             setTimeout(() => {
@@ -74,12 +95,12 @@ document.getElementById('login-form').addEventListener('submit', async function(
     } catch (error) {
         console.error('Error:', error);
         submitBtn.disabled = false;
-        submitBtn.textContent = 'כניסה';
+        submitBtn.textContent = 'Login';
         
         if (error.message === 'Timeout') {
-            showLoginError('⏱️ הבקשה לוקחת יותר מדי זמן. נסה שוב.');
+            showLoginError('⏱️ Request taking too long. Try again.');
         } else {
-            showLoginError('שגיאה בהתחברות. בדוק את החיבור לאינטרנט.');
+            showLoginError('Connection error. Check your internet.');
         }
     }
 });
@@ -100,8 +121,9 @@ function hideLoginError() {
 // Logout function for back button
 function logoutAndGoBack(event) {
     event.preventDefault();
-    localStorage.removeItem('managerPassword');
+    sessionStorage.removeItem('managerSessionToken');
     managerPassword = '';
+    sessionToken = '';
     window.location.href = 'index.html';
 }
 
@@ -131,7 +153,7 @@ async function loadRestaurants() {
             loading.style.display = 'none';
             
             if (result.data.length === 0) {
-                container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">אין מסעדות להצגה.</p>';
+                container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">No restaurants to display.</p>';
             } else {
                 displayRestaurants(result.data);
             }
@@ -141,7 +163,7 @@ async function loadRestaurants() {
     } catch (err) {
         console.error('Error loading restaurants:', err);
         loading.style.display = 'none';
-        error.innerHTML = '<p>שגיאה בטעינת המסעדות</p>';
+        error.innerHTML = '<p>Error loading restaurants</p>';
         error.style.display = 'block';
     }
 }
@@ -157,7 +179,7 @@ function displayRestaurants(restaurants) {
     currentRestaurants = restaurants;
     
     if (restaurants.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">אין מסעדות להצגה.</p>';
+        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">No restaurants to display.</p>';
         return;
     }
     
@@ -180,28 +202,28 @@ function createRestaurantCard(restaurant) {
     
     const statusClass = 'status-' + restaurant.status;
     const statusText = {
-        pending: 'ממתין לאישור',
-        approved: 'מאושר',
-        rejected: 'נדחה'
+        pending: 'Pending Approval',
+        approved: 'Approved',
+        rejected: 'Rejected'
     };
     
     let html = `
         <h2>${escapeHtml(restaurant.restaurantName)}</h2>
         <div class="restaurant-info">
             <p>
-                <strong>סטטוס:</strong>
+                <strong>Status:</strong>
                 <span class="${statusClass}">${statusText[restaurant.status] || restaurant.status}</span>
             </p>
     `;
     
     if (restaurant.city) {
-        html += `<p><strong>עיר:</strong> ${escapeHtml(restaurant.city)}</p>`;
+        html += `<p><strong>City:</strong> ${escapeHtml(restaurant.city)}</p>`;
     }
     
     if (restaurant.kashrut) {
         html += `
             <p>
-                <strong>כשרות:</strong>
+                <strong>Kashrut:</strong>
                 <span class="kashrut-badge">${escapeHtml(restaurant.kashrut)}</span>
             </p>
         `;
@@ -218,7 +240,7 @@ function createRestaurantCard(restaurant) {
             displayUrl = restaurant.website.replace('https://', '').replace('http://', '').split('/')[0];
         }
         
-        html += `<p><strong>אתר:</strong> <a href="${escapeHtml(restaurant.website)}" 
+        html += `<p><strong>Website:</strong> <a href="${escapeHtml(restaurant.website)}" 
                class="website-link" 
                target="_blank" 
                rel="noopener"
@@ -226,18 +248,18 @@ function createRestaurantCard(restaurant) {
     }
     
     if (restaurant.dateAdded) {
-        html += `<p><strong>תאריך:</strong> ${escapeHtml(restaurant.dateAdded)}</p>`;
+        html += `<p><strong>Date:</strong> ${escapeHtml(restaurant.dateAdded)}</p>`;
     }
     
     // Show action buttons only for pending items
     if (restaurant.status === 'pending') {
         html += `
             <div class="action-buttons">
-                <button class="approve-btn" onclick="updateStatus(${restaurant.id}, 'approved')">
-                    ✓ אשר
+                <button class="approve-btn" onclick="updateStatus('${escapeHtml(restaurant.id)}', 'approved')">
+                    ✓ Approve
                 </button>
-                <button class="reject-btn" onclick="updateStatus(${restaurant.id}, 'rejected')">
-                    ✗ דחה
+                <button class="reject-btn" onclick="updateStatus('${escapeHtml(restaurant.id)}', 'rejected')">
+                    ✗ Reject
                 </button>
             </div>
         `;
@@ -246,11 +268,11 @@ function createRestaurantCard(restaurant) {
     // Add edit and delete buttons for all restaurants
     html += `
         <div class="action-buttons" style="margin-top: 10px;">
-            <button class="edit-btn" onclick="openEditModal(${restaurant.id})">
-                ✎ ערוך
+            <button class="edit-btn" onclick="openEditModal('${escapeHtml(restaurant.id)}')">
+                ✎ Edit
             </button>
-            <button class="delete-btn" onclick="deleteRestaurant(${restaurant.id})">
-                🗑 מחק
+            <button class="delete-btn" onclick="deleteRestaurant('${escapeHtml(restaurant.id)}')">
+                🗑 Delete
             </button>
         </div>
     `;
@@ -273,8 +295,8 @@ function escapeHtml(text) {
 // ====================================
 
 async function updateStatus(id, status) {
-    const actionText = status === 'approved' ? 'מאשר' : 'דוחה';
-    const successText = status === 'approved' ? '✓ המסעדה אושרה!' : '✗ המסעדה נדחתה';
+    const actionText = status === 'approved' ? 'Approving' : 'Rejecting';
+    const successText = status === 'approved' ? '✓ Restaurant approved!' : '✗ Restaurant rejected';
     
     try {
         // Show loading overlay
@@ -297,14 +319,16 @@ async function updateStatus(id, status) {
             const restaurant = currentRestaurants.find(r => r.id === id);
             if (restaurant) {
                 restaurant.status = status;
-            }
-            
-            // Update the card directly in the DOM
-            const card = document.querySelector(`.restaurant-card[data-id="${id}"]`);
-            if (card) {
-                // Replace the card with the updated one
-                const newCard = createRestaurantCard(restaurant);
-                card.parentNode.replaceChild(newCard, card);
+                
+                // Update the card directly in the DOM
+                const card = document.querySelector(`.restaurant-card[data-id="${id}"]`);
+                if (card) {
+                    // Replace the card with the updated one
+                    const newCard = createRestaurantCard(restaurant);
+                    card.parentNode.replaceChild(newCard, card);
+                }
+            } else {
+                console.error('Restaurant not found in currentRestaurants array');
             }
             
             // Hide loading
@@ -314,12 +338,12 @@ async function updateStatus(id, status) {
             showSuccessMessage(successText);
         } else {
             hideActionLoader();
-            alert('שגיאה: ' + result.message);
+            alert('Error: ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
         hideActionLoader();
-        alert('שגיאה בעדכון הסטטוס');
+        alert('Error updating status');
     }
 }
 
@@ -361,7 +385,7 @@ const editCancelBtn = document.getElementById('edit-cancel-btn');
 function openEditModal(id) {
     const restaurant = currentRestaurants.find(r => r.id === id);
     if (!restaurant) {
-        alert('מסעדה לא נמצאה');
+        alert('Restaurant not found');
         return;
     }
     
@@ -395,7 +419,7 @@ window.onclick = function(event) {
 editForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     
-    const id = parseInt(document.getElementById('edit-id').value);
+    const id = document.getElementById('edit-id').value;
     const formData = {
         action: 'updateRestaurant',
         id: id,
@@ -407,7 +431,7 @@ editForm.addEventListener('submit', async function(e) {
     };
     
     try {
-        showActionLoader('מעדכן מסעדה...');
+        showActionLoader('Updating restaurant...');
         
         const response = await fetch(CONFIG.webAppUrl, {
             method: 'POST',
@@ -424,26 +448,28 @@ editForm.addEventListener('submit', async function(e) {
                 restaurant.city = formData.city;
                 restaurant.website = formData.website;
                 restaurant.kashrut = formData.kashrut;
-            }
-            
-            // Update the card directly in the DOM
-            const card = document.querySelector(`.restaurant-card[data-id="${id}"]`);
-            if (card) {
-                const newCard = createRestaurantCard(restaurant);
-                card.parentNode.replaceChild(newCard, card);
+                
+                // Update the card directly in the DOM
+                const card = document.querySelector(`.restaurant-card[data-id="${id}"]`);
+                if (card) {
+                    const newCard = createRestaurantCard(restaurant);
+                    card.parentNode.replaceChild(newCard, card);
+                }
+            } else {
+                console.error('Restaurant not found in currentRestaurants array');
             }
             
             hideActionLoader();
             editModal.classList.remove('show');
-            showSuccessMessage('✓ המסעדה עודכנה בהצלחה!');
+            showSuccessMessage('✓ Restaurant updated successfully!');
         } else {
             hideActionLoader();
-            alert('שגיאה: ' + result.message);
+            alert('Error: ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
         hideActionLoader();
-        alert('שגיאה בעדכון המסעדה');
+        alert('Error updating restaurant');
     }
 });
 
@@ -486,13 +512,13 @@ function showConfirmDialog(title, message) {
 function deleteRestaurant(id) {
     const restaurant = currentRestaurants.find(r => r.id === id);
     if (!restaurant) {
-        alert('מסעדה לא נמצאה');
+        alert('Restaurant not found');
         return;
     }
     
     showConfirmDialog(
-        `האם אתה בטוח שברצונך למחוק את "${restaurant.restaurantName}"?`,
-        'פעולה זו לא ניתנת לביטול!'
+        `Are you sure you want to delete "${restaurant.restaurantName}"?`,
+        'This action cannot be undone!'
     ).then(confirmed => {
         if (confirmed) {
             performDelete(id);
@@ -502,7 +528,7 @@ function deleteRestaurant(id) {
 
 async function performDelete(id) {
     try {
-        showActionLoader('מוחק מסעדה...');
+        showActionLoader('Deleting restaurant...');
         
         const response = await fetch(CONFIG.webAppUrl, {
             method: 'POST',
@@ -532,21 +558,21 @@ async function performDelete(id) {
                     // Check if no restaurants left
                     const container = document.getElementById('restaurants-container');
                     if (container.children.length === 0) {
-                        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">אין מסעדות להצגה.</p>';
+                        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">No restaurants to display.</p>';
                     }
                 }, 300);
             }
             
             hideActionLoader();
-            showSuccessMessage('✓ המסעדה נמחקה בהצלחה!');
+            showSuccessMessage('✓ Restaurant deleted successfully!');
         } else {
             hideActionLoader();
-            alert('שגיאה: ' + result.message);
+            alert('Error: ' + result.message);
         }
     } catch (error) {
         console.error('Error:', error);
         hideActionLoader();
-        alert('שגיאה במחיקת המסעדה');
+        alert('Error deleting restaurant');
     }
 }
 

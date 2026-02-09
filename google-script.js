@@ -11,7 +11,7 @@ const MANAGER_PASSWORD = 'manager123'; // Change this to your desired password
 const NOTIFICATION_EMAIL = 'dassimern@gmail.com'; // Change this to your email address
 
 // Column headers
-const HEADERS = ['שם המסעדה', 'עיר', 'אתר', 'כשרות', 'תאריך הוספה', 'סטטוס'];
+const HEADERS = ['ID', 'שם המסעדה', 'עיר', 'אתר', 'כשרות', 'תאריך הוספה', 'סטטוס'];
 
 /**
  * Handle GET requests - Fetch restaurants
@@ -48,15 +48,62 @@ function doGet(e) {
     
     const sheet = getSheet();
     
-    // First time setup - add status column if missing
+    // Migration logic: Check current format and migrate if needed
     const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    if (headerRow.length < 6 || headerRow[5] !== 'סטטוס') {
-      sheet.getRange(1, 6).setValue('סטטוס');
-    }
-    // Add city column if missing (for existing sheets)
-    if (headerRow.length < 2 || headerRow[1] !== 'עיר') {
+    
+    // Format evolution:
+    // Old format (5 cols): [Name, Website, Kashrut, DateAdded, Status]
+    // Mid format (6 cols): [Name, City, Website, Kashrut, DateAdded, Status]
+    // New format (7 cols): [ID, Name, City, Website, Kashrut, DateAdded, Status]
+    
+    // Detect old format (5 columns)
+    if (headerRow.length === 5 && headerRow[4] === 'סטטוס') {
+      // Old format: Insert City at position 2
       sheet.insertColumnAfter(1);
       sheet.getRange(1, 2).setValue('עיר');
+      // Now we have: [Name, City, Website, Kashrut, DateAdded, Status] - 6 columns
+      
+      // Then insert ID at position 1
+      sheet.insertColumnBefore(1);
+      sheet.getRange(1, 1).setValue('ID');
+      
+      // Generate IDs for existing rows
+      const numRows = sheet.getLastRow();
+      if (numRows > 1) {
+        for (let i = 2; i <= numRows; i++) {
+          const id = 'R' + Date.now() + '_' + (i - 2);
+          sheet.getRange(i, 1).setValue(id);
+          // Small delay to ensure unique timestamps
+          Utilities.sleep(1);
+        }
+      }
+    }
+    // Detect mid format (6 columns without ID)
+    else if (headerRow.length === 6 && headerRow[0] !== 'ID') {
+      // Mid format: Insert ID at position 1
+      sheet.insertColumnBefore(1);
+      sheet.getRange(1, 1).setValue('ID');
+      
+      // Generate IDs for existing rows
+      const numRows = sheet.getLastRow();
+      if (numRows > 1) {
+        for (let i = 2; i <= numRows; i++) {
+          const id = 'R' + Date.now() + '_' + (i - 2);
+          sheet.getRange(i, 1).setValue(id);
+          Utilities.sleep(1);
+        }
+      }
+    }
+    // Check if City column is missing in other edge cases
+    else if (headerRow.length > 0 && headerRow[0] === 'ID' && headerRow[2] !== 'עיר') {
+      sheet.insertColumnAfter(2);
+      sheet.getRange(1, 3).setValue('עיר');
+    }
+    
+    // Final validation: Ensure all required columns exist
+    const finalHeaderRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (finalHeaderRow.length < 7 || finalHeaderRow[6] !== 'סטטוס') {
+      sheet.getRange(1, 7).setValue('סטטוס');
     }
     
     const data = sheet.getDataRange().getValues();
@@ -71,24 +118,32 @@ function doGet(e) {
       const row = data[i];
       
       // Skip empty rows
-      if (!row[0] || row[0] === '') {
+      if (!row[1] || row[1] === '') {
         continue;
       }
       
       // Set default status if empty
-      let status = row[5];
+      let status = row[6];
       if (!status || status === '') {
         status = 'pending';
-        sheet.getRange(i + 1, 6).setValue('pending');
+        sheet.getRange(i + 1, 7).setValue('pending');
+      }
+      
+      // Ensure ID exists for this row
+      let id = row[0];
+      if (!id || id === '') {
+        id = 'R' + Date.now() + '_' + i;
+        sheet.getRange(i + 1, 1).setValue(id);
+        Utilities.sleep(1);
       }
       
       const restaurant = {
-        id: i,
-        restaurantName: row[0],
-        city: row[1],
-        website: row[2],
-        kashrut: row[3],
-        dateAdded: row[4],
+        id: id,
+        restaurantName: row[1],
+        city: row[2],
+        website: row[3],
+        kashrut: row[4],
+        dateAdded: row[5],
         status: status
       };
       
@@ -123,8 +178,12 @@ function doPost(e) {
         sheet.appendRow(HEADERS);
       }
       
+      // Generate unique ID for the new restaurant
+      const newId = 'R' + Date.now() + '_' + Utilities.getUuid().substring(0, 8);
+      
       const timestamp = new Date().toLocaleString('he-IL');
       sheet.appendRow([
+        newId,
         data.restaurantName,
         data.city || '',
         data.website || '',
@@ -170,10 +229,25 @@ function doPost(e) {
       }
       
       const sheet = getSheet();
-      const rowIndex = data.id; // Row index from the data
+      const restaurantId = data.id;
       
-      // Update status column (column 6)
-      sheet.getRange(rowIndex + 1, 6).setValue(data.status);
+      // Find the row with this ID
+      const dataRange = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+      
+      for (let i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][0] === restaurantId) {
+          rowIndex = i + 1; // +1 for 1-indexed rows
+          break;
+        }
+      }
+      
+      if (rowIndex === -1) {
+        return createJsonResponse({ success: false, message: 'Restaurant not found' });
+      }
+      
+      // Update status column (column 7)
+      sheet.getRange(rowIndex, 7).setValue(data.status);
       
       return createJsonResponse({ success: true, message: 'Status updated successfully' });
     }
@@ -185,13 +259,28 @@ function doPost(e) {
       }
       
       const sheet = getSheet();
-      const rowIndex = data.id; // Row index from the data
+      const restaurantId = data.id;
       
-      // Update all fields except timestamp and status
-      sheet.getRange(rowIndex + 1, 1).setValue(data.restaurantName);
-      sheet.getRange(rowIndex + 1, 2).setValue(data.city || '');
-      sheet.getRange(rowIndex + 1, 3).setValue(data.website || '');
-      sheet.getRange(rowIndex + 1, 4).setValue(data.kashrut);
+      // Find the row with this ID
+      const dataRange = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+      
+      for (let i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][0] === restaurantId) {
+          rowIndex = i + 1; // +1 for 1-indexed rows
+          break;
+        }
+      }
+      
+      if (rowIndex === -1) {
+        return createJsonResponse({ success: false, message: 'Restaurant not found' });
+      }
+      
+      // Update all fields except ID, timestamp and status
+      sheet.getRange(rowIndex, 2).setValue(data.restaurantName);
+      sheet.getRange(rowIndex, 3).setValue(data.city || '');
+      sheet.getRange(rowIndex, 4).setValue(data.website || '');
+      sheet.getRange(rowIndex, 5).setValue(data.kashrut);
       
       return createJsonResponse({ success: true, message: 'Restaurant updated successfully' });
     }
@@ -203,10 +292,25 @@ function doPost(e) {
       }
       
       const sheet = getSheet();
-      const rowIndex = data.id; // Row index from the data
+      const restaurantId = data.id;
       
-      // Delete the row (add 1 because row 1 is headers)
-      sheet.deleteRow(rowIndex + 1);
+      // Find the row with this ID
+      const dataRange = sheet.getDataRange().getValues();
+      let rowIndex = -1;
+      
+      for (let i = 1; i < dataRange.length; i++) {
+        if (dataRange[i][0] === restaurantId) {
+          rowIndex = i + 1; // +1 for 1-indexed rows
+          break;
+        }
+      }
+      
+      if (rowIndex === -1) {
+        return createJsonResponse({ success: false, message: 'Restaurant not found' });
+      }
+      
+      // Delete the row
+      sheet.deleteRow(rowIndex);
       
       return createJsonResponse({ success: true, message: 'Restaurant deleted successfully' });
     }

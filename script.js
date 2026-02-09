@@ -16,32 +16,32 @@ const CONFIG = {
 // Sample data for demo mode
 const DEMO_RESTAURANTS = [
     {
-        restaurantName: 'מסעדת השוק',
+        restaurantName: 'Market Restaurant',
         city: 'תל אביב',
         website: 'https://example.com',
         kashrut: 'רבנות תל אביב',
-        dateAdded: new Date().toLocaleString('he-IL')
+        dateAdded: new Date().toLocaleString('en-US')
     },
     {
-        restaurantName: 'פיצה בלה',
+        restaurantName: 'Pizza Bella',
         city: 'ירושלים',
         website: 'https://example.com',
         kashrut: 'בד"ץ עדה חרדית',
-        dateAdded: new Date().toLocaleString('he-IL')
+        dateAdded: new Date().toLocaleString('en-US')
     },
     {
-        restaurantName: 'הבורגר הכשר',
+        restaurantName: 'The Kosher Burger',
         city: 'בני ברק',
         website: '',
         kashrut: 'רבנות ירושלים',
-        dateAdded: new Date().toLocaleString('he-IL')
+        dateAdded: new Date().toLocaleString('en-US')
     },
     {
-        restaurantName: 'סושי טוקיו',
+        restaurantName: 'Tokyo Sushi',
         city: 'חיפה',
         website: 'https://example.com',
-        kashrut: 'בד"ץ חוג חת"ם סופר',
-        dateAdded: new Date().toLocaleString('he-IL')
+        kashrut: 'בד"ץ חוג חת"ם סופר בני ברק',
+        dateAdded: new Date().toLocaleString('en-US')
     }
 ];
 
@@ -165,11 +165,11 @@ form.addEventListener('submit', async function(e) {
                 city: formData.city,
                 website: formData.website,
                 kashrut: formData.kashrut,
-                dateAdded: new Date().toLocaleString('he-IL')
+                dateAdded: new Date().toLocaleString('en-US')
             });
             
             formLoading.classList.remove('show');
-            showFormMessage('המסעדה נוספה בהצלחה! ✓ (מצב הדגמה)', 'success');
+            showFormMessage('Restaurant added successfully! ✓ (Demo mode)', 'success');
             form.reset();
             
             setTimeout(() => {
@@ -196,7 +196,7 @@ form.addEventListener('submit', async function(e) {
         formLoading.classList.remove('show');
         
         if (result.success) {
-            showFormMessage('✓ המסעדה נשלחה לאישור המנהל!', 'success');
+            showFormMessage('✓ Restaurant submitted for manager approval!', 'success');
             form.reset();
             
             // Close modal after a short delay
@@ -205,12 +205,12 @@ form.addEventListener('submit', async function(e) {
                 hideFormMessage();
             }, 2500);
         } else {
-            showFormMessage('שגיאה: ' + result.message, 'error');
+            showFormMessage('Error: ' + result.message, 'error');
         }
     } catch (error) {
         console.error('Error:', error);
         formLoading.classList.remove('show');
-        showFormMessage('שגיאה בשמירת הנתונים. אנא נסה שוב.', 'error');
+        showFormMessage('Error saving data. Please try again.', 'error');
     }
 });
 
@@ -277,7 +277,7 @@ function displayRestaurants(restaurants) {
     const container = document.getElementById('restaurants-container');
     
     if (restaurants.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">אין מסעדות להצגה. הוסף מסעדה ראשונה!</p>';
+        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1;">No restaurants to display. Add the first one!</p>';
         return;
     }
     
@@ -299,7 +299,7 @@ function createRestaurantCard(restaurant) {
     if (restaurant.city) {
         html += `
             <p>
-                <strong>עיר:</strong>
+                <strong>City:</strong>
                 ${escapeHtml(restaurant.city)}
             </p>
         `;
@@ -308,7 +308,7 @@ function createRestaurantCard(restaurant) {
     if (restaurant.kashrut) {
         html += `
             <p>
-                <strong>כשרות:</strong>
+                <strong>Kashrut:</strong>
                 <span class="kashrut-badge">${escapeHtml(restaurant.kashrut)}</span>
             </p>
         `;
@@ -326,7 +326,7 @@ function createRestaurantCard(restaurant) {
         }
         
         html += `
-            <p><strong>אתר:</strong> <a href="${escapeHtml(restaurant.website)}" 
+            <p><strong>Website:</strong> <a href="${escapeHtml(restaurant.website)}" 
                class="website-link" 
                target="_blank" 
                rel="noopener"
@@ -335,7 +335,7 @@ function createRestaurantCard(restaurant) {
                class="restaurant-link" 
                target="_blank" 
                rel="noopener">
-               🌐 לאתר המסעדה
+               🌐 Visit Website
             </a>
         `;
     }
@@ -389,7 +389,7 @@ function filterRestaurants(searchTerm) {
     
     // Show message if no results
     if (filtered.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">לא נמצאו תוצאות לחיפוש.</p>';
+        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">No results found.</p>';
     }
 }
 
@@ -399,14 +399,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const header = document.querySelector('header');
         const demoBanner = document.createElement('div');
         demoBanner.style.cssText = 'background: #ffc107; color: #000; padding: 10px; border-radius: 8px; margin-top: 10px; font-weight: bold;';
-        demoBanner.textContent = '🎯 מצב הדגמה - השינויים לא נשמרים';
+        demoBanner.textContent = '🎯 Demo Mode - Changes are not saved';
         header.appendChild(demoBanner);
     }
     
     // Check if Web App URL is configured (only in real mode)
     if (!DEMO_MODE && CONFIG.webAppUrl === 'YOUR_WEB_APP_URL_HERE') {
         document.getElementById('loading').style.display = 'none';
-        document.getElementById('error').innerHTML = '<p>אנא הגדר את ה-Web App URL בקובץ script.js<br>עיין ב-README.md להוראות</p>';
+        document.getElementById('error').innerHTML = '<p>Please configure the Web App URL in script.js<br>See README.md for instructions</p>';
         document.getElementById('error').style.display = 'block';
         return;
     }

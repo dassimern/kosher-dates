@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מסעדות כשרות</title>
+    <title>Kosher Restaurants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,17 +16,17 @@
 
     <div class="container">
         <header>
-            <h1>🍽️ מסעדות כשרות</h1>
-            <p class="subtitle">מדריך המסעדות הכשרות שלך</p>
+            <h1>🍽️ Kosher Restaurants</h1>
+            <p class="subtitle">Your Kosher Restaurant Guide</p>
         </header>
 
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="🔍 חפש לפי שם מסעדה, עיר או כשרות...">
+            <input type="text" id="search-input" placeholder="🔍 Search by restaurant name, city or kashrut...">
         </div>
 
         <div class="add-button-container">
             <button id="add-restaurant-btn" class="add-btn">
-                ➕ הוסף מסעדה חדשה
+                ➕ Add New Restaurant
             </button>
         </div>
 
@@ -31,27 +34,27 @@
         <div id="modal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h2>הוסף מסעדה חדשה</h2>
+                <h2>Add New Restaurant</h2>
                 
                 <!-- Form Loading Overlay -->
                 <div id="form-loading" class="form-loading-overlay">
                     <div class="spinner"></div>
-                    <p>שומר את המסעדה...</p>
+                    <p>Saving restaurant...</p>
                 </div>
                 
                 <form id="restaurant-form">
                     <div class="form-group">
-                        <label for="restaurant-name">שם המסעדה *</label>
+                        <label for="restaurant-name">Restaurant Name *</label>
                         <input type="text" id="restaurant-name" name="restaurantName" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="city">עיר *</label>
+                        <label for="city">City *</label>
                         <div class="custom-select-wrapper">
                             <input type="text" id="city" name="city" class="custom-select-input" required 
-                                   placeholder="הקלד לחיפוש או בחר מהרשימה..." autocomplete="off" readonly>
+                                   placeholder="Type to search or select from list..." autocomplete="off" readonly>
                             <input type="text" id="city-search" class="custom-select-search" 
-                                   placeholder="הקלד לחיפוש..." style="display: none;">
+                                   placeholder="Type to search..." style="display: none;">
                             <div class="custom-select-dropdown" id="city-dropdown">
                                 <div class="custom-select-option" data-value="ירושלים">ירושלים</div>
                                 <div class="custom-select-option" data-value="תל אביב">תל אביב</div>
@@ -85,14 +88,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="website">אתר</label>
+                        <label for="website">Website</label>
                         <input type="url" id="website" name="website" placeholder="https://example.com">
                     </div>
 
                     <div class="form-group">
-                        <label for="kashrut">כשרות *</label>
+                        <label for="kashrut">Kashrut *</label>
                         <select id="kashrut" name="kashrut" required>
-                            <option value="">-- בחר כשרות --</option>
+                            <option value="">-- Select Kashrut --</option>
                             <option value='בד"ץ עדה חרדית'>בד"ץ עדה חרדית</option>
                             <option value='בד"ץ חוג חת"ם סופר בני ברק'>בד"ץ חוג חת"ם סופר בני ברק</option>
                             <option value='בד"ץ מהדרין ירושלים'>בד"ץ מהדרין ירושלים</option>
@@ -112,8 +115,8 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="submit-btn">שמור</button>
-                        <button type="button" class="cancel-btn" id="cancel-btn">ביטול</button>
+                        <button type="submit" class="submit-btn">Save</button>
+                        <button type="button" class="cancel-btn" id="cancel-btn">Cancel</button>
                     </div>
                 </form>
 
@@ -124,12 +127,12 @@
         <!-- Loading Indicator -->
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>טוען מסעדות...</p>
+            <p>Loading restaurants...</p>
         </div>
 
         <!-- Error Message -->
         <div id="error" class="error" style="display: none;">
-            <p>שגיאה בטעינת המסעדות. אנא בדוק את ההגדרות.</p>
+            <p>Error loading restaurants. Please check settings.</p>
         </div>
 
         <!-- Restaurants List -->

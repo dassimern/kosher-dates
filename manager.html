@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>פאנל מנהל - מסעדות כשרות</title>
+    <title>Manager Panel - Kosher Restaurants</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <style>
         .manager-header {
@@ -18,7 +21,7 @@
         .back-link {
             position: fixed;
             top: 20px;
-            left: 20px;
+            right: 20px;
             padding: 10px 20px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -39,7 +42,7 @@
         .back-link:hover {
             background: rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.6);
-            transform: translateX(-5px);
+            transform: translateX(5px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
         }
         
@@ -335,19 +338,19 @@
 </head>
 <body>
     <a href="#" class="back-link" onclick="logoutAndGoBack(event)">
-        ← חזרה
+        ← Back
     </a>
     
     <div class="container">
         <!-- Login Screen -->
         <div id="login-screen" class="login-container">
-            <h2>🔐 כניסת מנהל</h2>
+            <h2>🔐 Manager Login</h2>
             <form id="login-form">
                 <div class="form-group">
-                    <label for="password">סיסמה</label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" name="password" required>
                 </div>
-                <button type="submit" class="submit-btn" style="width: 100%;">כניסה</button>
+                <button type="submit" class="submit-btn" style="width: 100%;">Login</button>
                 <div id="login-error" class="form-message" style="display: none;"></div>
             </form>
         </div>
@@ -355,17 +358,17 @@
         <!-- Manager Panel -->
         <div id="manager-panel" style="display: none;">
             <header>
-                <h1>🛡️ פאנל מנהל</h1>
-                <p class="subtitle">ניהול אישור מסעדות</p>
+                <h1>🛡️ Manager Panel</h1>
+                <p class="subtitle">Restaurant Approval Management</p>
             </header>
 
             <div id="loading" class="loading">
                 <div class="spinner"></div>
-                <p>טוען מסעדות...</p>
+                <p>Loading restaurants...</p>
             </div>
 
             <div id="error" class="error" style="display: none;">
-                <p>שגיאה בטעינת המסעדות.</p>
+                <p>Error loading restaurants.</p>
             </div>
 
             <div id="restaurants-container" class="restaurants-grid">
@@ -378,7 +381,7 @@
     <div id="action-overlay" class="action-overlay">
         <div class="action-loader">
             <div class="spinner"></div>
-            <p id="action-message">מעדכן...</p>
+            <p id="action-message">Updating...</p>
         </div>
     </div>
 
@@ -388,11 +391,11 @@
     <!-- Confirmation Dialog -->
     <div id="confirm-dialog" class="confirm-dialog">
         <div class="confirm-content">
-            <h3 id="confirm-title">האם אתה בטוח?</h3>
+            <h3 id="confirm-title">Are you sure?</h3>
             <p id="confirm-message"></p>
             <div class="confirm-buttons">
-                <button class="confirm-no" id="confirm-cancel">ביטול</button>
-                <button class="confirm-yes" id="confirm-ok">אישור</button>
+                <button class="confirm-no" id="confirm-cancel">Cancel</button>
+                <button class="confirm-yes" id="confirm-ok">Confirm</button>
             </div>
         </div>
     </div>
@@ -401,30 +404,30 @@
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <span class="close" id="edit-close">&times;</span>
-            <h2>ערוך מסעדה</h2>
+            <h2>Edit Restaurant</h2>
             
             <form id="edit-form">
                 <input type="hidden" id="edit-id">
                 
                 <div class="form-group">
-                    <label for="edit-restaurant-name">שם המסעדה *</label>
+                    <label for="edit-restaurant-name">Restaurant Name *</label>
                     <input type="text" id="edit-restaurant-name" name="restaurantName" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="edit-city">עיר *</label>
+                    <label for="edit-city">City *</label>
                     <input type="text" id="edit-city" name="city" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="edit-website">אתר</label>
+                    <label for="edit-website">Website</label>
                     <input type="url" id="edit-website" name="website" placeholder="https://example.com">
                 </div>
 
                 <div class="form-group">
-                    <label for="edit-kashrut">כשרות *</label>
+                    <label for="edit-kashrut">Kashrut *</label>
                     <select id="edit-kashrut" name="kashrut" required>
-                        <option value="">-- בחר כשרות --</option>
+                        <option value="">-- Select Kashrut --</option>
                         <option value='בד"ץ עדה חרדית'>בד"ץ עדה חרדית</option>
                         <option value='בד"ץ חוג חת"ם סופר בני ברק'>בד"ץ חוג חת"ם סופר בני ברק</option>
                         <option value='בד"ץ מהדרין ירושלים'>בד"ץ מהדרין ירושלים</option>
@@ -444,8 +447,8 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="submit-btn">שמור שינויים</button>
-                    <button type="button" class="cancel-btn" id="edit-cancel-btn">ביטול</button>
+                    <button type="submit" class="submit-btn">Save Changes</button>
+                    <button type="button" class="cancel-btn" id="edit-cancel-btn">Cancel</button>
                 </div>
             </form>
 

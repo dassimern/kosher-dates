@@ -169,13 +169,9 @@ form.addEventListener('submit', async function(e) {
             });
             
             formLoading.classList.remove('show');
-            showFormMessage('Restaurant added successfully! ✓ (Demo mode)', 'success');
             form.reset();
-            
-            setTimeout(() => {
-                modal.classList.remove('show');
-                loadRestaurants();
-            }, 1500);
+            modal.classList.remove('show');
+            loadRestaurants();
         }, 1000);
         
         return;
@@ -196,14 +192,9 @@ form.addEventListener('submit', async function(e) {
         formLoading.classList.remove('show');
         
         if (result.success) {
-            showFormMessage('✓ Restaurant submitted for manager approval!', 'success');
             form.reset();
-            
-            // Close modal after a short delay
-            setTimeout(() => {
-                modal.classList.remove('show');
-                hideFormMessage();
-            }, 2500);
+            modal.classList.remove('show');
+            hideFormMessage();
         } else {
             showFormMessage('Error: ' + result.message, 'error');
         }

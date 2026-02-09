@@ -11,7 +11,7 @@ const MANAGER_PASSWORD = 'manager123'; // Change this to your desired password
 const NOTIFICATION_EMAIL = 'dassimern@gmail.com'; // Change this to your email address
 
 // Column headers
-const HEADERS = ['שם המסעדה', 'אתר', 'כשרות', 'תאריך הוספה', 'סטטוס'];
+const HEADERS = ['שם המסעדה', 'עיר', 'אתר', 'כשרות', 'תאריך הוספה', 'סטטוס'];
 
 /**
  * Handle GET requests - Fetch restaurants
@@ -50,8 +50,13 @@ function doGet(e) {
     
     // First time setup - add status column if missing
     const headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-    if (headerRow.length < 5 || headerRow[4] !== 'סטטוס') {
-      sheet.getRange(1, 5).setValue('סטטוס');
+    if (headerRow.length < 6 || headerRow[5] !== 'סטטוס') {
+      sheet.getRange(1, 6).setValue('סטטוס');
+    }
+    // Add city column if missing (for existing sheets)
+    if (headerRow.length < 2 || headerRow[1] !== 'עיר') {
+      sheet.insertColumnAfter(1);
+      sheet.getRange(1, 2).setValue('עיר');
     }
     
     const data = sheet.getDataRange().getValues();
@@ -71,18 +76,19 @@ function doGet(e) {
       }
       
       // Set default status if empty
-      let status = row[4];
+      let status = row[5];
       if (!status || status === '') {
         status = 'pending';
-        sheet.getRange(i + 1, 5).setValue('pending');
+        sheet.getRange(i + 1, 6).setValue('pending');
       }
       
       const restaurant = {
         id: i,
         restaurantName: row[0],
-        website: row[1],
-        kashrut: row[2],
-        dateAdded: row[3],
+        city: row[1],
+        website: row[2],
+        kashrut: row[3],
+        dateAdded: row[4],
         status: status
       };
       
@@ -120,6 +126,7 @@ function doPost(e) {
       const timestamp = new Date().toLocaleString('he-IL');
       sheet.appendRow([
         data.restaurantName,
+        data.city || '',
         data.website || '',
         data.kashrut,
         timestamp,
@@ -135,6 +142,7 @@ function doPost(e) {
 מסעדה חדשה נוספה למערכת וממתינה לאישור שלך:
 
 📍 שם המסעדה: ${data.restaurantName}
+🏙️ עיר: ${data.city || 'לא צוין'}
 🌐 אתר: ${data.website || 'לא צוין'}
 ✡️ כשרות: ${data.kashrut}
 📅 תאריך הוספה: ${timestamp}
@@ -164,10 +172,43 @@ function doPost(e) {
       const sheet = getSheet();
       const rowIndex = data.id; // Row index from the data
       
-      // Update status column (column 5)
-      sheet.getRange(rowIndex + 1, 5).setValue(data.status);
+      // Update status column (column 6)
+      sheet.getRange(rowIndex + 1, 6).setValue(data.status);
       
       return createJsonResponse({ success: true, message: 'Status updated successfully' });
+    }
+    
+    // Update restaurant details
+    if (data.action === 'updateRestaurant') {
+      if (data.password !== MANAGER_PASSWORD) {
+        return createJsonResponse({ success: false, message: 'Invalid password' });
+      }
+      
+      const sheet = getSheet();
+      const rowIndex = data.id; // Row index from the data
+      
+      // Update all fields except timestamp and status
+      sheet.getRange(rowIndex + 1, 1).setValue(data.restaurantName);
+      sheet.getRange(rowIndex + 1, 2).setValue(data.city || '');
+      sheet.getRange(rowIndex + 1, 3).setValue(data.website || '');
+      sheet.getRange(rowIndex + 1, 4).setValue(data.kashrut);
+      
+      return createJsonResponse({ success: true, message: 'Restaurant updated successfully' });
+    }
+    
+    // Delete restaurant
+    if (data.action === 'deleteRestaurant') {
+      if (data.password !== MANAGER_PASSWORD) {
+        return createJsonResponse({ success: false, message: 'Invalid password' });
+      }
+      
+      const sheet = getSheet();
+      const rowIndex = data.id; // Row index from the data
+      
+      // Delete the row (add 1 because row 1 is headers)
+      sheet.deleteRow(rowIndex + 1);
+      
+      return createJsonResponse({ success: true, message: 'Restaurant deleted successfully' });
     }
     
     return createJsonResponse({ success: false, message: 'Invalid action' });

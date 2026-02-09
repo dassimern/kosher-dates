@@ -416,7 +416,41 @@
 
                 <div class="form-group">
                     <label for="edit-city">City *</label>
-                    <input type="text" id="edit-city" name="city" required>
+                    <div class="custom-select-wrapper">
+                        <input type="text" id="edit-city" name="city" class="custom-select-input" required 
+                               placeholder="Type to search or select from list..." autocomplete="off" readonly>
+                        <input type="text" id="edit-city-search" class="custom-select-search" 
+                               placeholder="Type to search..." style="display: none;">
+                        <div class="custom-select-dropdown" id="edit-city-dropdown">
+                            <div class="custom-select-option" data-value="ירושלים">ירושלים</div>
+                            <div class="custom-select-option" data-value="תל אביב">תל אביב</div>
+                            <div class="custom-select-option" data-value="חיפה">חיפה</div>
+                            <div class="custom-select-option" data-value="באר שבע">באר שבע</div>
+                            <div class="custom-select-option" data-value="נתניה">נתניה</div>
+                            <div class="custom-select-option" data-value="בני ברק">בני ברק</div>
+                            <div class="custom-select-option" data-value="פתח תקווה">פתח תקווה</div>
+                            <div class="custom-select-option" data-value="ראשון לציון">ראשון לציון</div>
+                            <div class="custom-select-option" data-value="אשדוד">אשדוד</div>
+                            <div class="custom-select-option" data-value="חולון">חולון</div>
+                            <div class="custom-select-option" data-value="רחובות">רחובות</div>
+                            <div class="custom-select-option" data-value="בת ים">בת ים</div>
+                            <div class="custom-select-option" data-value="רמת גן">רמת גן</div>
+                            <div class="custom-select-option" data-value="אשקלון">אשקלון</div>
+                            <div class="custom-select-option" data-value="הרצליה">הרצליה</div>
+                            <div class="custom-select-option" data-value="כפר סבא">כפר סבא</div>
+                            <div class="custom-select-option" data-value="חדרה">חדרה</div>
+                            <div class="custom-select-option" data-value="רעננה">רעננה</div>
+                            <div class="custom-select-option" data-value="מודיעין">מודיעין</div>
+                            <div class="custom-select-option" data-value="לוד">לוד</div>
+                            <div class="custom-select-option" data-value="רמלה">רמלה</div>
+                            <div class="custom-select-option" data-value="נס ציונה">נס ציונה</div>
+                            <div class="custom-select-option" data-value="צפת">צפת</div>
+                            <div class="custom-select-option" data-value="טבריה">טבריה</div>
+                            <div class="custom-select-option" data-value="קריית שמונה">קריית שמונה</div>
+                            <div class="custom-select-option" data-value="אילת">אילת</div>
+                            <div class="custom-select-option" data-value="אחר">אחר</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-group">

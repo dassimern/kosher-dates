@@ -61,6 +61,28 @@ header h1 {
     margin-bottom: 30px;
 }
 
+.search-container {
+    max-width: 600px;
+    margin: 0 auto 30px;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 50px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.search-container input:focus {
+    outline: none;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
 .add-btn {
     background: white;
     color: #667eea;
@@ -202,6 +224,85 @@ header h1 {
     font-size: 1rem;
     transition: border-color 0.3s ease;
     font-family: inherit;
+}
+
+/* Custom Select Dropdown */
+.custom-select-wrapper {
+    position: relative;
+}
+
+.custom-select-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: white;
+    font-family: inherit;
+}
+
+.custom-select-input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.custom-select-search {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #667eea;
+    border-radius: 8px 8px 0 0;
+    font-size: 1rem;
+    font-family: inherit;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.custom-select-search:focus {
+    outline: none;
+}
+
+.custom-select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 2px solid #667eea;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.custom-select-dropdown.show {
+    display: block;
+}
+
+.custom-select-option {
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.custom-select-option:last-child {
+    border-bottom: none;
+}
+
+.custom-select-option:hover {
+    background: #f0f0f0;
+}
+
+.custom-select-option.selected {
+    background: #667eea;
+    color: white;
+}
+
+.custom-select-option.hidden {
+    display: none;
 }
 
 .form-group input:focus,

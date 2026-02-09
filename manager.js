@@ -166,6 +166,10 @@ function createRestaurantCard(restaurant) {
             </p>
     `;
     
+    if (restaurant.city) {
+        html += `<p><strong>עיר:</strong> ${escapeHtml(restaurant.city)}</p>`;
+    }
+    
     if (restaurant.kashrut) {
         html += `
             <p>

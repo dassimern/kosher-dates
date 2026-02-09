@@ -109,8 +109,59 @@ function closeDropdown() {
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.custom-select-wrapper')) {
         closeDropdown();
+        closeKashrutDropdown();
     }
 });
+
+// ====================================
+// KASHRUT DROPDOWN
+// ====================================
+
+const kashrutInput = document.getElementById('kashrut');
+const kashrutSearch = document.getElementById('kashrut-search');
+const kashrutDropdown = document.getElementById('kashrut-dropdown');
+const kashrutOptions = kashrutDropdown.querySelectorAll('.custom-select-option');
+
+// Open dropdown when clicking on the input
+kashrutInput.addEventListener('click', function() {
+    kashrutInput.style.display = 'none';
+    kashrutSearch.style.display = 'block';
+    kashrutDropdown.classList.add('show');
+    kashrutSearch.focus();
+    kashrutSearch.value = '';
+    // Show all options
+    kashrutOptions.forEach(opt => opt.classList.remove('hidden'));
+});
+
+// Search functionality
+kashrutSearch.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    
+    kashrutOptions.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            option.classList.remove('hidden');
+        } else {
+            option.classList.add('hidden');
+        }
+    });
+});
+
+// Select option
+kashrutOptions.forEach(option => {
+    option.addEventListener('click', function() {
+        const value = this.getAttribute('data-value');
+        kashrutInput.value = value;
+        closeKashrutDropdown();
+    });
+});
+
+// Close dropdown
+function closeKashrutDropdown() {
+    kashrutDropdown.classList.remove('show');
+    kashrutSearch.style.display = 'none';
+    kashrutInput.style.display = 'block';
+}
 
 // Open modal
 addBtn.onclick = function() {
@@ -118,17 +169,20 @@ addBtn.onclick = function() {
     form.reset();
     hideFormMessage();
     closeDropdown();
+    closeKashrutDropdown();
 };
 
 // Close modal
 closeBtn.onclick = function() {
     modal.classList.remove('show');
     closeDropdown();
+    closeKashrutDropdown();
 };
 
 cancelBtn.onclick = function() {
     modal.classList.remove('show');
     closeDropdown();
+    closeKashrutDropdown();
 };
 
 // Close modal when clicking outside

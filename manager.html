@@ -19,7 +19,7 @@
         }
         
         .back-link {
-            position: fixed;
+            position: absolute;
             top: 20px;
             right: 20px;
             padding: 10px 20px;
@@ -370,8 +370,8 @@
 
         <!-- Manager Panel -->
         <div id="manager-panel" style="display: none;">
-            <header>
-                <h1>🛡️ Manager Panel</h1>
+            <header style="padding: 20px 120px 40px;">
+                <h1>Manager Panel</h1>
                 <p class="subtitle">Restaurant Approval Management</p>
             </header>
 
@@ -473,24 +473,29 @@
 
                 <div class="form-group">
                     <label for="edit-kashrut">Kashrut *</label>
-                    <select id="edit-kashrut" name="kashrut" required>
-                        <option value="">-- Select Kashrut --</option>
-                        <option value='בד"ץ עדה חרדית'>בד"ץ עדה חרדית</option>
-                        <option value='בד"ץ חוג חת"ם סופר בני ברק'>בד"ץ חוג חת"ם סופר בני ברק</option>
-                        <option value='בד"ץ מהדרין ירושלים'>בד"ץ מהדרין ירושלים</option>
-                        <option value='בד"ץ שארית ישראל'>בד"ץ שארית ישראל</option>
-                        <option value="רבנות ראשית לישראל">רבנות ראשית לישראל</option>
-                        <option value="רבנות ירושלים">רבנות ירושלים</option>
-                        <option value="רבנות תל אביב">רבנות תל אביב</option>
-                        <option value="רבנות בני ברק">רבנות בני ברק</option>
-                        <option value="רבנות פתח תקווה">רבנות פתח תקווה</option>
-                        <option value="רבנות חיפה">רבנות חיפה</option>
-                        <option value="רבנות באר שבע">רבנות באר שבע</option>
-                        <option value="רבנות נתניה">רבנות נתניה</option>
-                        <option value="רבנות אשדוד">רבנות אשדוד</option>
-                        <option value="רבנות מקומית">רבנות מקומית</option>
-                        <option value="אחר">אחר</option>
-                    </select>
+                    <div class="custom-select-wrapper">
+                        <input type="text" id="edit-kashrut" name="kashrut" class="custom-select-input" required 
+                               placeholder="Type to search or select from list..." autocomplete="off" readonly>
+                        <input type="text" id="edit-kashrut-search" class="custom-select-search" 
+                               placeholder="Type to search..." style="display: none;">
+                        <div class="custom-select-dropdown" id="edit-kashrut-dropdown">
+                            <div class="custom-select-option" data-value='בד"ץ עדה חרדית'>בד"ץ עדה חרדית</div>
+                            <div class="custom-select-option" data-value='בד"ץ חוג חת"ם סופר בני ברק'>בד"ץ חוג חת"ם סופר בני ברק</div>
+                            <div class="custom-select-option" data-value='בד"ץ מהדרין ירושלים'>בד"ץ מהדרין ירושלים</div>
+                            <div class="custom-select-option" data-value='בד"ץ שארית ישראל'>בד"ץ שארית ישראל</div>
+                            <div class="custom-select-option" data-value="רבנות ראשית לישראל">רבנות ראשית לישראל</div>
+                            <div class="custom-select-option" data-value="רבנות ירושלים">רבנות ירושלים</div>
+                            <div class="custom-select-option" data-value="רבנות תל אביב">רבנות תל אביב</div>
+                            <div class="custom-select-option" data-value="רבנות בני ברק">רבנות בני ברק</div>
+                            <div class="custom-select-option" data-value="רבנות פתח תקווה">רבנות פתח תקווה</div>
+                            <div class="custom-select-option" data-value="רבנות חיפה">רבנות חיפה</div>
+                            <div class="custom-select-option" data-value="רבנות באר שבע">רבנות באר שבע</div>
+                            <div class="custom-select-option" data-value="רבנות נתניה">רבנות נתניה</div>
+                            <div class="custom-select-option" data-value="רבנות אשדוד">רבנות אשדוד</div>
+                            <div class="custom-select-option" data-value="רבנות מקומית">רבנות מקומית</div>
+                            <div class="custom-select-option" data-value="אחר">אחר</div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-actions">
@@ -504,5 +509,83 @@
     </div>
 
     <script src="manager.js"></script>
+    
+    <style>
+        @media (max-width: 768px) {
+            .back-link {
+                top: 10px;
+                right: 10px;
+                padding: 8px 16px;
+                font-size: 0.9rem;
+            }
+            
+            header {
+                padding: 15px 70px 20px !important;
+            }
+            
+            .login-container {
+                margin: 50px auto;
+                padding: 30px 20px;
+                width: 90%;
+            }
+            
+            .login-container h2 {
+                font-size: 1.5rem;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .restaurant-card {
+                padding: 16px;
+            }
+            
+            .restaurant-card h2 {
+                font-size: 1.2rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .approve-btn,
+            .reject-btn,
+            .edit-btn,
+            .delete-btn {
+                width: 100%;
+                padding: 10px 16px;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .confirm-content {
+                width: 90%;
+                padding: 25px 20px;
+            }
+            
+            .confirm-content h3 {
+                font-size: 1.2rem;
+            }
+            
+            .confirm-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-loader {
+                padding: 30px 20px;
+                width: 85%;
+            }
+            
+            .success-message {
+                padding: 20px 30px;
+                font-size: 1.1rem;
+                width: 80%;
+            }
+        }
+    </style>
 </body>
 </html>

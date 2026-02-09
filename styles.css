@@ -37,7 +37,8 @@ header {
     text-align: center;
     color: #fff;
     margin-bottom: 40px;
-    padding: 40px 20px;
+    padding: 20px 80px 40px;
+    position: relative;
 }
 
 header h1 {
@@ -76,7 +77,7 @@ header h1 {
 }
 
 .manager-link-corner {
-    position: fixed;
+    position: absolute;
     top: 20px;
     left: 20px;
     width: 50px;
@@ -609,16 +610,117 @@ header h1 {
 }
 
 @media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    header {
+        padding: 15px 60px 20px;
+        margin-bottom: 20px;
+    }
+    
     header h1 {
         font-size: 2rem;
     }
     
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    .manager-link-corner {
+        top: 10px;
+        left: 10px;
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+    }
+    
+    .search-container {
+        margin-bottom: 20px;
+    }
+    
+    .search-container input {
+        padding: 12px 15px;
+        font-size: 1rem;
+    }
+    
+    .add-button-container {
+        margin-bottom: 20px;
+    }
+    
+    .add-btn {
+        padding: 12px 30px;
+        font-size: 1rem;
+        width: 100%;
+        max-width: 300px;
+    }
+    
     .restaurants-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 10px 0;
+    }
+    
+    .restaurant-card {
+        padding: 20px;
+    }
+    
+    .restaurant-card h2 {
+        font-size: 1.3rem;
+    }
+    
+    .restaurant-info {
+        font-size: 0.95rem;
+    }
+    
+    .kashrut-badge {
+        font-size: 0.85rem;
+        padding: 3px 10px;
+    }
+    
+    .restaurant-link {
+        display: block;
+        text-align: center;
+        padding: 10px 16px;
     }
     
     .modal-content {
         width: 95%;
         padding: 20px;
+        max-height: 85vh;
+    }
+    
+    .modal-content h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+    
+    .form-group label {
+        font-size: 0.95rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px;
+        font-size: 1rem;
+    }
+    
+    .custom-select-input,
+    .custom-select-search {
+        padding: 10px;
+        font-size: 1rem;
+    }
+    
+    .form-actions {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .submit-btn,
+    .cancel-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
     }
 }

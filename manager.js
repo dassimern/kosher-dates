@@ -635,16 +635,77 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// ====================================
+// EDIT MODAL - KASHRUT DROPDOWN
+// ====================================
+
+const editKashrutInput = document.getElementById('edit-kashrut');
+const editKashrutSearch = document.getElementById('edit-kashrut-search');
+const editKashrutDropdown = document.getElementById('edit-kashrut-dropdown');
+const editKashrutOptions = editKashrutDropdown.querySelectorAll('.custom-select-option');
+
+// Open dropdown when clicking on the input
+editKashrutInput.addEventListener('click', function() {
+    editKashrutInput.style.display = 'none';
+    editKashrutSearch.style.display = 'block';
+    editKashrutDropdown.classList.add('show');
+    editKashrutSearch.focus();
+    editKashrutSearch.value = '';
+    // Show all options
+    editKashrutOptions.forEach(opt => opt.classList.remove('hidden'));
+});
+
+// Search functionality
+editKashrutSearch.addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    
+    editKashrutOptions.forEach(option => {
+        const text = option.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            option.classList.remove('hidden');
+        } else {
+            option.classList.add('hidden');
+        }
+    });
+});
+
+// Select option
+editKashrutOptions.forEach(option => {
+    option.addEventListener('click', function() {
+        const value = this.getAttribute('data-value');
+        editKashrutInput.value = value;
+        closeEditKashrutDropdown();
+    });
+});
+
+// Close dropdown
+function closeEditKashrutDropdown() {
+    editKashrutDropdown.classList.remove('show');
+    editKashrutSearch.style.display = 'none';
+    editKashrutInput.style.display = 'block';
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#edit-kashrut-dropdown') && 
+        !e.target.closest('#edit-kashrut') && 
+        !e.target.closest('#edit-kashrut-search')) {
+        closeEditKashrutDropdown();
+    }
+});
+
 // Close dropdown when edit modal is closed
 const originalEditCloseFunction = editCloseBtn.onclick;
 editCloseBtn.onclick = function() {
     closeEditCityDropdown();
+    closeEditKashrutDropdown();
     if (originalEditCloseFunction) originalEditCloseFunction.call(this);
 };
 
 const originalEditCancelFunction = editCancelBtn.onclick;
 editCancelBtn.onclick = function() {
     closeEditCityDropdown();
+    closeEditKashrutDropdown();
     if (originalEditCancelFunction) originalEditCancelFunction.call(this);
 };
 

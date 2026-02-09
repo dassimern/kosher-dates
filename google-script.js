@@ -194,7 +194,7 @@ function doPost(e) {
       
       // Send email notification
       try {
-        const subject = '🍽️ מסעדה חדשה ממתינה לאישור';
+        const subject = 'מסעדה חדשה ממתינה לאישור';
         const body = `
 היי!
         

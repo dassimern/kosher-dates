@@ -49,43 +49,47 @@
         .login-container {
             max-width: 400px;
             margin: 100px auto;
-            background: white;
+            background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
             padding: 40px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #D4A574;
         }
         
         .login-container h2 {
             text-align: center;
-            color: #333;
+            color: #5D4E37;
             margin-bottom: 30px;
         }
         
         .status-pending {
-            background: #ffc107;
-            color: #000;
+            background: linear-gradient(135deg, #FFD54F 0%, #FFCA28 100%);
+            color: #5D4037;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
+            border: 1px solid #FFA000;
         }
         
         .status-approved {
-            background: #28a745;
+            background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
+            border: 1px solid #2E7D32;
         }
         
         .status-rejected {
-            background: #dc3545;
+            background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
             color: white;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
             font-weight: bold;
+            border: 1px solid #C62828;
         }
         
         .action-buttons {
@@ -97,7 +101,7 @@
         .approve-btn, .reject-btn {
             flex: 1;
             padding: 8px 16px;
-            border: none;
+            border: 2px solid transparent;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
@@ -105,21 +109,27 @@
         }
         
         .approve-btn {
-            background: #28a745;
+            background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
             color: white;
+            border-color: #2E7D32;
         }
         
         .approve-btn:hover {
-            background: #218838;
+            background: linear-gradient(135deg, #81C784 0%, #66BB6A 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
         }
         
         .reject-btn {
-            background: #dc3545;
+            background: linear-gradient(135deg, #EF5350 0%, #E53935 100%);
             color: white;
+            border-color: #C62828;
         }
         
         .reject-btn:hover {
-            background: #c82333;
+            background: linear-gradient(135deg, #F44336 0%, #EF5350 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 83, 80, 0.3);
         }
         
         .logout-btn {
@@ -193,23 +203,24 @@
         }
         
         .action-loader {
-            background: white;
+            background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
             padding: 40px;
             border-radius: 16px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #D4A574;
         }
         
         .action-loader .spinner {
             width: 60px;
             height: 60px;
-            border: 5px solid #e0e0e0;
-            border-top: 5px solid #667eea;
+            border: 5px solid rgba(212, 165, 116, 0.3);
+            border-top: 5px solid #D4A574;
             margin: 0 auto 20px;
         }
         
         .action-loader p {
-            color: #333;
+            color: #5D4E37;
             font-size: 1.1rem;
             font-weight: 600;
         }
@@ -220,13 +231,14 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: #28a745;
-            color: white;
+            background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
+            color: #5D4E37;
             padding: 30px 50px;
             border-radius: 12px;
             font-size: 1.3rem;
             font-weight: bold;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #D4A574;
             z-index: 3000;
             display: none;
             animation: successPop 0.5s ease;
@@ -269,22 +281,23 @@
         }
         
         .confirm-content {
-            background: white;
+            background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
             padding: 30px;
             border-radius: 12px;
             max-width: 450px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 3px solid #D4A574;
         }
         
         .confirm-content h3 {
-            color: #333;
+            color: #5D4E37;
             font-size: 1.3rem;
             margin-bottom: 20px;
         }
         
         .confirm-content p {
-            color: #666;
+            color: #6B5D4F;
             font-size: 1rem;
             line-height: 1.6;
             margin-bottom: 25px;

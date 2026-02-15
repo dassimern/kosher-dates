@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Google Places Autocomplete</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Google Places Autocomplete Test</h1>
+    
+    <div id="status" class="status"></div>
+    
+    <label for="address">Address (Israel):</label>
+    <input type="text" id="address" placeholder="Type an address in Israel...">
+    
+    <p id="selected"></p>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPFZwV6hDu_GaQD5NFuayG7p-D1icfxQ&libraries=places&language=iw&callback=initMap" async defer></script>
+    
+    <script>
+        function initMap() {
+            const statusDiv = document.getElementById('status');
+            const addressInput = document.getElementById('address');
+            const selectedDiv = document.getElementById('selected');
+            
+            try {
+                // Check if Google Maps API loaded
+                if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = 'ERROR: Google Maps API did not load';
+                    return;
+                }
+                
+                statusDiv.className = 'status success';
+                statusDiv.textContent = '✓ Google Maps API loaded successfully!';
+                
+                // Initialize autocomplete
+                const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                    componentRestrictions: { country: 'il' },
+                    fields: ['formatted_address', 'address_components', 'name'],
+                    types: ['address']
+                });
+                
+                // Listen for place selection
+                autocomplete.addListener('place_changed', function() {
+                    const place = autocomplete.getPlace();
+                    if (place.formatted_address) {
+                        selectedDiv.innerHTML = '<strong>Selected:</strong> ' + place.formatted_address;
+                    }
+                });
+                
+                console.log('Autocomplete initialized successfully');
+                
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = 'ERROR: ' + error.message;
+                console.error('Error:', error);
+            }
+        }
+        
+        window.initMap = initMap;
+    </script>
+</body>
+</html>

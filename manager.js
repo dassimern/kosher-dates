@@ -216,8 +216,8 @@ function createRestaurantCard(restaurant) {
             </p>
     `;
     
-    if (restaurant.city) {
-        html += `<p><strong>City:</strong> ${escapeHtml(restaurant.city)}</p>`;
+    if (restaurant.address) {
+        html += `<p><strong>Address:</strong> ${escapeHtml(restaurant.address)}</p>`;
     }
     
     if (restaurant.kashrut) {
@@ -381,6 +381,47 @@ const editForm = document.getElementById('edit-form');
 const editCloseBtn = document.getElementById('edit-close');
 const editCancelBtn = document.getElementById('edit-cancel-btn');
 
+// Initialize Google Places Autocomplete for edit form
+let editAutocomplete;
+
+// Callback function for Google Maps API
+function initGoogleMapsManager() {
+    // Initialize autocomplete when Google Maps API is ready
+    initEditAutocomplete();
+}
+
+function initEditAutocomplete() {
+    const editAddressInput = document.getElementById('edit-address');
+    
+    if (!editAddressInput) {
+        return;
+    }
+    
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.warn('Google Maps API not loaded yet');
+        return;
+    }
+    
+    // Create autocomplete instance restricted to Israel
+    editAutocomplete = new google.maps.places.Autocomplete(editAddressInput, {
+        componentRestrictions: { country: 'il' },
+        fields: ['formatted_address', 'address_components', 'name'],
+        types: ['address']
+    });
+    
+    // Listen for place selection
+    editAutocomplete.addListener('place_changed', function() {
+        const place = editAutocomplete.getPlace();
+        if (place.formatted_address) {
+            editAddressInput.value = place.formatted_address;
+        }
+    });
+}
+
+// Make initGoogleMapsManager available globally for the callback
+window.initGoogleMapsManager = initGoogleMapsManager;
+
 // Open edit modal
 function openEditModal(id) {
     const restaurant = currentRestaurants.find(r => r.id === id);
@@ -392,9 +433,12 @@ function openEditModal(id) {
     // Fill form with current data
     document.getElementById('edit-id').value = restaurant.id;
     document.getElementById('edit-restaurant-name').value = restaurant.restaurantName;
-    document.getElementById('edit-city').value = restaurant.city || '';
+    document.getElementById('edit-address').value = restaurant.address || '';
     document.getElementById('edit-website').value = restaurant.website || '';
     document.getElementById('edit-kashrut').value = restaurant.kashrut || '';
+    
+    editModal.classList.add('show');
+}
     
     editModal.classList.add('show');
 }
@@ -424,7 +468,7 @@ editForm.addEventListener('submit', async function(e) {
         action: 'updateRestaurant',
         id: id,
         restaurantName: document.getElementById('edit-restaurant-name').value,
-        city: document.getElementById('edit-city').value,
+        address: document.getElementById('edit-address').value,
         website: document.getElementById('edit-website').value,
         kashrut: document.getElementById('edit-kashrut').value,
         password: managerPassword
@@ -445,7 +489,7 @@ editForm.addEventListener('submit', async function(e) {
             const restaurant = currentRestaurants.find(r => r.id === id);
             if (restaurant) {
                 restaurant.restaurantName = formData.restaurantName;
-                restaurant.city = formData.city;
+                restaurant.address = formData.address;
                 restaurant.website = formData.website;
                 restaurant.kashrut = formData.kashrut;
                 
@@ -577,65 +621,6 @@ async function performDelete(id) {
 }
 
 // ====================================
-// EDIT MODAL - CITY DROPDOWN
-// ====================================
-
-const editCityInput = document.getElementById('edit-city');
-const editCitySearch = document.getElementById('edit-city-search');
-const editCityDropdown = document.getElementById('edit-city-dropdown');
-const editCityOptions = editCityDropdown.querySelectorAll('.custom-select-option');
-
-// Open dropdown when clicking on the input
-editCityInput.addEventListener('click', function() {
-    editCityInput.style.display = 'none';
-    editCitySearch.style.display = 'block';
-    editCityDropdown.classList.add('show');
-    editCitySearch.focus();
-    editCitySearch.value = '';
-    // Show all options
-    editCityOptions.forEach(opt => opt.classList.remove('hidden'));
-});
-
-// Search functionality
-editCitySearch.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    
-    editCityOptions.forEach(option => {
-        const text = option.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            option.classList.remove('hidden');
-        } else {
-            option.classList.add('hidden');
-        }
-    });
-});
-
-// Select option
-editCityOptions.forEach(option => {
-    option.addEventListener('click', function() {
-        const value = this.getAttribute('data-value');
-        editCityInput.value = value;
-        closeEditCityDropdown();
-    });
-});
-
-// Close dropdown
-function closeEditCityDropdown() {
-    editCityDropdown.classList.remove('show');
-    editCitySearch.style.display = 'none';
-    editCityInput.style.display = 'block';
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('#edit-city-dropdown') && 
-        !e.target.closest('#edit-city') && 
-        !e.target.closest('#edit-city-search')) {
-        closeEditCityDropdown();
-    }
-});
-
-// ====================================
 // EDIT MODAL - KASHRUT DROPDOWN
 // ====================================
 
@@ -697,14 +682,12 @@ document.addEventListener('click', function(e) {
 // Close dropdown when edit modal is closed
 const originalEditCloseFunction = editCloseBtn.onclick;
 editCloseBtn.onclick = function() {
-    closeEditCityDropdown();
     closeEditKashrutDropdown();
     if (originalEditCloseFunction) originalEditCloseFunction.call(this);
 };
 
 const originalEditCancelFunction = editCancelBtn.onclick;
 editCancelBtn.onclick = function() {
-    closeEditCityDropdown();
     closeEditKashrutDropdown();
     if (originalEditCancelFunction) originalEditCancelFunction.call(this);
 };

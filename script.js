@@ -17,28 +17,28 @@ const CONFIG = {
 const DEMO_RESTAURANTS = [
     {
         restaurantName: 'Market Restaurant',
-        city: 'תל אביב',
+        address: 'Rothschild Blvd 12, תל אביב',
         website: 'https://example.com',
         kashrut: 'רבנות תל אביב',
         dateAdded: new Date().toLocaleString('en-US')
     },
     {
         restaurantName: 'Pizza Bella',
-        city: 'ירושלים',
+        address: 'King George St 45, ירושלים',
         website: 'https://example.com',
         kashrut: 'בד"ץ עדה חרדית',
         dateAdded: new Date().toLocaleString('en-US')
     },
     {
         restaurantName: 'The Kosher Burger',
-        city: 'בני ברק',
+        address: 'Rabbi Akiva 23, בני ברק',
         website: '',
         kashrut: 'רבנות ירושלים',
         dateAdded: new Date().toLocaleString('en-US')
     },
     {
         restaurantName: 'Tokyo Sushi',
-        city: 'חיפה',
+        address: 'HaNevi\'im 78, חיפה',
         website: 'https://example.com',
         kashrut: 'בד"ץ חוג חת"ם סופר בני ברק',
         dateAdded: new Date().toLocaleString('en-US')
@@ -58,60 +58,55 @@ const closeBtn = document.querySelector('.close');
 const cancelBtn = document.getElementById('cancel-btn');
 const form = document.getElementById('restaurant-form');
 
-// Custom Select Dropdown for City
-const cityInput = document.getElementById('city');
-const citySearch = document.getElementById('city-search');
-const cityDropdown = document.getElementById('city-dropdown');
-const cityOptions = cityDropdown.querySelectorAll('.custom-select-option');
+// ====================================
+// GOOGLE PLACES AUTOCOMPLETE
+// ====================================
 
-// Open dropdown when clicking on the input
-cityInput.addEventListener('click', function() {
-    cityInput.style.display = 'none';
-    citySearch.style.display = 'block';
-    cityDropdown.classList.add('show');
-    citySearch.focus();
-    citySearch.value = '';
-    // Show all options
-    cityOptions.forEach(opt => opt.classList.remove('hidden'));
-});
+let autocomplete;
 
-// Search functionality
-citySearch.addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    
-    cityOptions.forEach(option => {
-        const text = option.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            option.classList.remove('hidden');
-        } else {
-            option.classList.add('hidden');
-        }
-    });
-});
-
-// Select option
-cityOptions.forEach(option => {
-    option.addEventListener('click', function() {
-        const value = this.getAttribute('data-value');
-        cityInput.value = value;
-        closeDropdown();
-    });
-});
-
-// Close dropdown
-function closeDropdown() {
-    cityDropdown.classList.remove('show');
-    citySearch.style.display = 'none';
-    cityInput.style.display = 'block';
+// Callback function for Google Maps API
+function initGoogleMaps() {
+    // Initialize autocomplete when Google Maps API is ready
+    initAutocomplete();
 }
 
-// Close dropdown when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('.custom-select-wrapper')) {
-        closeDropdown();
-        closeKashrutDropdown();
+function initAutocomplete() {
+    const addressInput = document.getElementById('address');
+    
+    if (!addressInput) {
+        return;
     }
-});
+    
+    // Check if Google Maps API is loaded
+    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
+        console.warn('Google Maps API not loaded yet');
+        return;
+    }
+    
+    // Create autocomplete instance restricted to Israel
+    autocomplete = new google.maps.places.Autocomplete(addressInput, {
+        componentRestrictions: { country: 'il' },
+        fields: ['formatted_address', 'address_components', 'name'],
+        types: ['address']
+    });
+    
+    // Listen for place selection
+    autocomplete.addListener('place_changed', function() {
+        const place = autocomplete.getPlace();
+        if (place.formatted_address) {
+            addressInput.value = place.formatted_address;
+        }
+    });
+}
+
+// Make initGoogleMaps available globally for the callback
+window.initGoogleMaps = initGoogleMaps;
+
+// ====================================
+// CUSTOM SELECT DROPDOWN (REMOVED)
+// ====================================
+
+// City dropdown functionality removed - now using single address field with autocomplete
 
 // ====================================
 // KASHRUT DROPDOWN
@@ -163,25 +158,31 @@ function closeKashrutDropdown() {
     kashrutInput.style.display = 'block';
 }
 
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.custom-select-wrapper')) {
+        closeKashrutDropdown();
+    }
+});
+
 // Open modal
 addBtn.onclick = function() {
     modal.classList.add('show');
     form.reset();
     hideFormMessage();
-    closeDropdown();
     closeKashrutDropdown();
+    // Re-initialize autocomplete when modal opens to ensure it works
+    setTimeout(initAutocomplete, 100);
 };
 
 // Close modal
 closeBtn.onclick = function() {
     modal.classList.remove('show');
-    closeDropdown();
     closeKashrutDropdown();
 };
 
 cancelBtn.onclick = function() {
     modal.classList.remove('show');
-    closeDropdown();
     closeKashrutDropdown();
 };
 
@@ -204,7 +205,7 @@ form.addEventListener('submit', async function(e) {
     const formData = {
         action: 'addRestaurant',
         restaurantName: document.getElementById('restaurant-name').value,
-        city: document.getElementById('city').value,
+        address: document.getElementById('address').value,
         website: document.getElementById('website').value,
         kashrut: document.getElementById('kashrut').value
     };
@@ -216,7 +217,7 @@ form.addEventListener('submit', async function(e) {
         setTimeout(() => {
             demoData.push({
                 restaurantName: formData.restaurantName,
-                city: formData.city,
+                address: formData.address,
                 website: formData.website,
                 kashrut: formData.kashrut,
                 dateAdded: new Date().toLocaleString('en-US')
@@ -341,11 +342,11 @@ function createRestaurantCard(restaurant) {
         <div class="restaurant-info">
     `;
     
-    if (restaurant.city) {
+    if (restaurant.address) {
         html += `
             <p>
-                <strong>City:</strong>
-                ${escapeHtml(restaurant.city)}
+                <strong>Address:</strong>
+                ${escapeHtml(restaurant.address)}
             </p>
         `;
     }
@@ -419,14 +420,14 @@ function filterRestaurants(searchTerm) {
         return;
     }
     
-    // Filter restaurants by name, city, or kashrut
+    // Filter restaurants by name, address, or kashrut
     const filtered = allRestaurants.filter(restaurant => {
         const name = (restaurant.restaurantName || '').toLowerCase();
-        const city = (restaurant.city || '').toLowerCase();
+        const address = (restaurant.address || '').toLowerCase();
         const kashrut = (restaurant.kashrut || '').toLowerCase();
         
         return name.includes(searchTerm) || 
-               city.includes(searchTerm) || 
+               address.includes(searchTerm) ||
                kashrut.includes(searchTerm);
     });
     
@@ -439,6 +440,9 @@ function filterRestaurants(searchTerm) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Google Places Autocomplete will be initialized by the callback function
+    // when the API is loaded (initGoogleMaps)
+    
     // Show demo mode indicator
     if (DEMO_MODE) {
         const header = document.querySelector('header');

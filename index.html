@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPFZwV6hDu_GaQD5NFuayG7p-D1icfxQ&libraries=places&language=iw&callback=initGoogleMaps" async defer></script>
 </head>
 <body>
     <a href="manager.html" class="manager-link-corner">
@@ -21,7 +22,7 @@
         </header>
 
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="🔍 Search by restaurant name, city or kashrut...">
+            <input type="text" id="search-input" placeholder="🔍 Search by restaurant name, address or kashrut...">
         </div>
 
         <div class="add-button-container">
@@ -49,42 +50,13 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="city">City *</label>
-                        <div class="custom-select-wrapper">
-                            <input type="text" id="city" name="city" class="custom-select-input" required 
-                                   placeholder="Type to search or select from list..." autocomplete="off" readonly>
-                            <input type="text" id="city-search" class="custom-select-search" 
-                                   placeholder="Type to search..." style="display: none;">
-                            <div class="custom-select-dropdown" id="city-dropdown">
-                                <div class="custom-select-option" data-value="ירושלים">ירושלים</div>
-                                <div class="custom-select-option" data-value="תל אביב">תל אביב</div>
-                                <div class="custom-select-option" data-value="חיפה">חיפה</div>
-                                <div class="custom-select-option" data-value="באר שבע">באר שבע</div>
-                                <div class="custom-select-option" data-value="נתניה">נתניה</div>
-                                <div class="custom-select-option" data-value="בני ברק">בני ברק</div>
-                                <div class="custom-select-option" data-value="פתח תקווה">פתח תקווה</div>
-                                <div class="custom-select-option" data-value="ראשון לציון">ראשון לציון</div>
-                                <div class="custom-select-option" data-value="אשדוד">אשדוד</div>
-                                <div class="custom-select-option" data-value="חולון">חולון</div>
-                                <div class="custom-select-option" data-value="רחובות">רחובות</div>
-                                <div class="custom-select-option" data-value="בת ים">בת ים</div>
-                                <div class="custom-select-option" data-value="רמת גן">רמת גן</div>
-                                <div class="custom-select-option" data-value="אשקלון">אשקלון</div>
-                                <div class="custom-select-option" data-value="הרצליה">הרצליה</div>
-                                <div class="custom-select-option" data-value="כפר סבא">כפר סבא</div>
-                                <div class="custom-select-option" data-value="חדרה">חדרה</div>
-                                <div class="custom-select-option" data-value="רעננה">רעננה</div>
-                                <div class="custom-select-option" data-value="מודיעין">מודיעין</div>
-                                <div class="custom-select-option" data-value="לוד">לוד</div>
-                                <div class="custom-select-option" data-value="רמלה">רמלה</div>
-                                <div class="custom-select-option" data-value="נס ציונה">נס ציונה</div>
-                                <div class="custom-select-option" data-value="צפת">צפת</div>
-                                <div class="custom-select-option" data-value="טבריה">טבריה</div>
-                                <div class="custom-select-option" data-value="קריית שמונה">קריית שמונה</div>
-                                <div class="custom-select-option" data-value="אילת">אילת</div>
-                                <div class="custom-select-option" data-value="אחר">אחר</div>
-                            </div>
-                        </div>
+                        <label for="address">Address *</label>
+                        <input type="text" id="address" name="address" required 
+                               placeholder="Enter full address (street, city)..." 
+                               autocomplete="off">
+                        <small style="color: #999; font-size: 0.85rem; display: block; margin-top: 5px;">
+                            Type to search for an address
+                        </small>
                     </div>
 
                     <div class="form-group">

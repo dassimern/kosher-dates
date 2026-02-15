@@ -383,11 +383,27 @@ const editCancelBtn = document.getElementById('edit-cancel-btn');
 
 // Initialize Google Places Autocomplete for edit form
 let editAutocomplete;
+let googleMapsLoaded = false;
 
-// Callback function for Google Maps API
-function initGoogleMapsManager() {
-    // Initialize autocomplete when Google Maps API is ready
-    initEditAutocomplete();
+// Check if Google Maps is loaded
+function checkGoogleMapsLoaded() {
+    return typeof google !== 'undefined' && typeof google.maps !== 'undefined' && typeof google.maps.places !== 'undefined';
+}
+
+// Wait for Google Maps to load
+function waitForGoogleMaps(callback, maxAttempts = 20) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+        attempts++;
+        if (checkGoogleMapsLoaded()) {
+            clearInterval(interval);
+            googleMapsLoaded = true;
+            callback();
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn('Google Maps API did not load in time');
+        }
+    }, 500);
 }
 
 function initEditAutocomplete() {
@@ -397,9 +413,15 @@ function initEditAutocomplete() {
         return;
     }
     
+    // Check if already initialized
+    if (editAutocomplete) {
+        return;
+    }
+    
     // Check if Google Maps API is loaded
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-        console.warn('Google Maps API not loaded yet');
+    if (!checkGoogleMapsLoaded()) {
+        // Wait for it to load
+        waitForGoogleMaps(initEditAutocomplete);
         return;
     }
     
@@ -419,9 +441,6 @@ function initEditAutocomplete() {
     });
 }
 
-// Make initGoogleMapsManager available globally for the callback
-window.initGoogleMapsManager = initGoogleMapsManager;
-
 // Open edit modal
 function openEditModal(id) {
     const restaurant = currentRestaurants.find(r => r.id === id);
@@ -438,9 +457,9 @@ function openEditModal(id) {
     document.getElementById('edit-kashrut').value = restaurant.kashrut || '';
     
     editModal.classList.add('show');
-}
     
-    editModal.classList.add('show');
+    // Initialize autocomplete when modal opens
+    initEditAutocomplete();
 }
 
 // Close edit modal

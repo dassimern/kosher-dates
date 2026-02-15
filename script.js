@@ -63,11 +63,27 @@ const form = document.getElementById('restaurant-form');
 // ====================================
 
 let autocomplete;
+let googleMapsLoaded = false;
 
-// Callback function for Google Maps API
-function initGoogleMaps() {
-    // Initialize autocomplete when Google Maps API is ready
-    initAutocomplete();
+// Check if Google Maps is loaded
+function checkGoogleMapsLoaded() {
+    return typeof google !== 'undefined' && typeof google.maps !== 'undefined' && typeof google.maps.places !== 'undefined';
+}
+
+// Wait for Google Maps to load
+function waitForGoogleMaps(callback, maxAttempts = 20) {
+    let attempts = 0;
+    const interval = setInterval(() => {
+        attempts++;
+        if (checkGoogleMapsLoaded()) {
+            clearInterval(interval);
+            googleMapsLoaded = true;
+            callback();
+        } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            console.warn('Google Maps API did not load in time');
+        }
+    }, 500);
 }
 
 function initAutocomplete() {
@@ -77,9 +93,15 @@ function initAutocomplete() {
         return;
     }
     
+    // Check if already initialized
+    if (autocomplete) {
+        return;
+    }
+    
     // Check if Google Maps API is loaded
-    if (typeof google === 'undefined' || typeof google.maps === 'undefined') {
-        console.warn('Google Maps API not loaded yet');
+    if (!checkGoogleMapsLoaded()) {
+        // Wait for it to load
+        waitForGoogleMaps(initAutocomplete);
         return;
     }
     
@@ -98,9 +120,6 @@ function initAutocomplete() {
         }
     });
 }
-
-// Make initGoogleMaps available globally for the callback
-window.initGoogleMaps = initGoogleMaps;
 
 // ====================================
 // CUSTOM SELECT DROPDOWN (REMOVED)
@@ -171,8 +190,8 @@ addBtn.onclick = function() {
     form.reset();
     hideFormMessage();
     closeKashrutDropdown();
-    // Re-initialize autocomplete when modal opens to ensure it works
-    setTimeout(initAutocomplete, 100);
+    // Initialize autocomplete when modal opens
+    initAutocomplete();
 };
 
 // Close modal

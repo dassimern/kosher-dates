@@ -216,8 +216,22 @@ function createRestaurantCard(restaurant) {
             </p>
     `;
     
-    if (restaurant.address) {
-        html += `<p><strong>Address:</strong> ${escapeHtml(restaurant.address)}</p>`;
+    // Support both old format (street + city) and new format (address)
+    const hasAddress = restaurant.address || restaurant.street || restaurant.city;
+    
+    if (hasAddress) {
+        if (restaurant.address) {
+            html += `<p><strong>Address:</strong> ${escapeHtml(restaurant.address)}</p>`;
+        } else if (restaurant.street || restaurant.city) {
+            // Fallback for old data format
+            const addressParts = [];
+            if (restaurant.street) addressParts.push(restaurant.street);
+            if (restaurant.city) addressParts.push(restaurant.city);
+            html += `<p><strong>Address:</strong> ${escapeHtml(addressParts.join(', '))}</p>`;
+        }
+    } else {
+        // Show placeholder when no address is available
+        html += `<p><strong>Address:</strong> <span style="color: #999;">Not provided</span></p>`;
     }
     
     if (restaurant.kashrut) {

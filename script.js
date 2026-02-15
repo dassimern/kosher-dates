@@ -361,11 +361,35 @@ function createRestaurantCard(restaurant) {
         <div class="restaurant-info">
     `;
     
-    if (restaurant.address) {
+    // Support both old format (street + city) and new format (address)
+    const hasAddress = restaurant.address || restaurant.street || restaurant.city;
+    
+    if (hasAddress) {
+        if (restaurant.address) {
+            html += `
+                <p>
+                    <strong>Address:</strong>
+                    ${escapeHtml(restaurant.address)}
+                </p>
+            `;
+        } else if (restaurant.street || restaurant.city) {
+            // Fallback for old data format
+            const addressParts = [];
+            if (restaurant.street) addressParts.push(restaurant.street);
+            if (restaurant.city) addressParts.push(restaurant.city);
+            html += `
+                <p>
+                    <strong>Address:</strong>
+                    ${escapeHtml(addressParts.join(', '))}
+                </p>
+            `;
+        }
+    } else {
+        // Show placeholder when no address is available
         html += `
             <p>
                 <strong>Address:</strong>
-                ${escapeHtml(restaurant.address)}
+                <span style="color: #999;">Not provided</span>
             </p>
         `;
     }
@@ -439,14 +463,18 @@ function filterRestaurants(searchTerm) {
         return;
     }
     
-    // Filter restaurants by name, address, or kashrut
+    // Filter restaurants by name, address (or street/city for old format), or kashrut
     const filtered = allRestaurants.filter(restaurant => {
         const name = (restaurant.restaurantName || '').toLowerCase();
         const address = (restaurant.address || '').toLowerCase();
+        const street = (restaurant.street || '').toLowerCase();
+        const city = (restaurant.city || '').toLowerCase();
         const kashrut = (restaurant.kashrut || '').toLowerCase();
         
         return name.includes(searchTerm) || 
                address.includes(searchTerm) ||
+               street.includes(searchTerm) ||
+               city.includes(searchTerm) ||
                kashrut.includes(searchTerm);
     });
     

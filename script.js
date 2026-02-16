@@ -404,22 +404,7 @@ function createRestaurantCard(restaurant) {
     }
     
     if (restaurant.website) {
-        // Extract domain from URL for cleaner display
-        let displayUrl = restaurant.website;
-        try {
-            const url = new URL(restaurant.website);
-            displayUrl = url.hostname.replace('www.', '');
-        } catch (e) {
-            // If URL parsing fails, just use the original
-            displayUrl = restaurant.website.replace('https://', '').replace('http://', '').split('/')[0];
-        }
-        
         html += `
-            <p><strong>Website:</strong> <a href="${escapeHtml(restaurant.website)}" 
-               class="website-link" 
-               target="_blank" 
-               rel="noopener"
-               title="${escapeHtml(restaurant.website)}">${escapeHtml(displayUrl)}</a></p>
             <a href="${escapeHtml(restaurant.website)}" 
                class="restaurant-link" 
                target="_blank" 

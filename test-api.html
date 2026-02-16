@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Connection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+        }
+        .success {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        .error {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 API Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>Configuration</h2>
+        <p><strong>Web App URL:</strong> <span id="webAppUrl"></span></p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 1: Load Restaurants (Public)</h2>
+        <button onclick="testGetRestaurants()">Test Get Restaurants</button>
+        <div id="test1Result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Check CORS Headers</h2>
+        <button onclick="testCORS()">Test CORS</button>
+        <div id="test2Result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Direct URL Check</h2>
+        <p>Click the link below to test the URL directly:</p>
+        <a id="directLink" href="#" target="_blank">Open API URL in New Tab</a>
+        <p style="color: #666; font-size: 14px;">You should see JSON data, not an error page</p>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Display the configured URL
+        document.getElementById('webAppUrl').textContent = CONFIG.webAppUrl;
+        document.getElementById('directLink').href = CONFIG.webAppUrl + '?action=getRestaurants';
+        
+        async function testGetRestaurants() {
+            const resultDiv = document.getElementById('test1Result');
+            resultDiv.innerHTML = '<p>⏳ Testing...</p>';
+            
+            try {
+                const url = CONFIG.webAppUrl + '?action=getRestaurants';
+                console.log('Fetching from:', url);
+                
+                const response = await fetch(url);
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('Response is not valid JSON: ' + text.substring(0, 200));
+                }
+                
+                if (result.success) {
+                    resultDiv.className = 'success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Success!</h3>
+                        <p>Found ${result.data ? result.data.length : 0} restaurants</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                } else {
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ API returned error</h3>
+                        <p><strong>Message:</strong> ${result.message}</p>
+                        <pre>${JSON.stringify(result, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Request Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p><strong>Possible causes:</strong></p>
+                    <ul>
+                        <li>Wrong webAppUrl in script.js</li>
+                        <li>Google Apps Script not deployed</li>
+                        <li>CORS issues</li>
+                        <li>Network connectivity problem</li>
+                    </ul>
+                    <p><strong>Check browser console for more details</strong></p>
+                `;
+            }
+        }
+        
+        async function testCORS() {
+            const resultDiv = document.getElementById('test2Result');
+            resultDiv.innerHTML = '<p>⏳ Testing CORS...</p>';
+            
+            try {
+                const url = CONFIG.webAppUrl + '?action=getRestaurants';
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                resultDiv.className = 'success';
+                resultDiv.innerHTML = `
+                    <h3>✅ CORS is working!</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Headers:</p>
+                    <pre>${[...response.headers.entries()].map(([k,v]) => k + ': ' + v).join('\n')}</pre>
+                `;
+            } catch (error) {
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = `
+                    <h3>❌ CORS Error</h3>
+                    <p>${error.message}</p>
+                    <p>This usually means the Google Apps Script deployment has CORS restrictions.</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

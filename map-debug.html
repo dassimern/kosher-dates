@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Map Debug</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .debug-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .warning { color: orange; }
+    </style>
+</head>
+<body>
+    <h1>Map Loading Debug</h1>
+    
+    <div class="debug-section">
+        <h2>Step 1: Check if restaurants load</h2>
+        <button onclick="testLoadRestaurants()">Test Load Restaurants</button>
+        <div id="restaurants-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Step 2: Check Google Maps API</h2>
+        <button onclick="testGoogleMaps()">Test Google Maps</button>
+        <div id="maps-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Step 3: Test Geocoding</h2>
+        <button onclick="testGeocoding()">Test Geocode One Address</button>
+        <div id="geocode-result"></div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Console Logs</h2>
+        <p>Open browser console (F12) to see detailed logs</p>
+    </div>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqPFZwV6hDu_GaQD5NFuayG7p-D1icfxQ&libraries=places&language=iw"></script>
+    <script src="script.js"></script>
+    <script>
+        async function testLoadRestaurants() {
+            const resultDiv = document.getElementById('restaurants-result');
+            resultDiv.innerHTML = '<p>Loading...</p>';
+            
+            try {
+                const url = CONFIG.webAppUrl + '?action=getRestaurants';
+                const response = await fetch(url);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const withAddresses = result.data.filter(r => 
+                        r.address && r.address.trim() !== '' && r.address !== 'Not provided'
+                    );
+                    
+                    resultDiv.innerHTML = `
+                        <p class="success">✅ Success!</p>
+                        <p>Total restaurants: ${result.data.length}</p>
+                        <p>With addresses: ${withAddresses.length}</p>
+                        <pre>${JSON.stringify(withAddresses.slice(0, 3), null, 2)}</pre>
+                        <p>Showing first 3 restaurants with addresses</p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<p class="error">❌ Failed: ${result.message}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            }
+        }
+        
+        function testGoogleMaps() {
+            const resultDiv = document.getElementById('maps-result');
+            
+            if (typeof google !== 'undefined' && google.maps) {
+                resultDiv.innerHTML = `
+                    <p class="success">✅ Google Maps API loaded successfully</p>
+                    <p>Version: ${google.maps.version}</p>
+                `;
+            } else {
+                resultDiv.innerHTML = `<p class="error">❌ Google Maps API not loaded</p>`;
+            }
+        }
+        
+        async function testGeocoding() {
+            const resultDiv = document.getElementById('geocode-result');
+            resultDiv.innerHTML = '<p>Testing geocoding...</p>';
+            
+            if (typeof google === 'undefined' || !google.maps) {
+                resultDiv.innerHTML = '<p class="error">❌ Google Maps not loaded</p>';
+                return;
+            }
+            
+            const geocoder = new google.maps.Geocoder();
+            const testAddress = "ברשבסקי 8, ראשון לציון, ישראל";
+            
+            try {
+                const result = await new Promise((resolve, reject) => {
+                    geocoder.geocode({ 
+                        address: testAddress,
+                        componentRestrictions: { country: 'IL' }
+                    }, (results, status) => {
+                        if (status === 'OK' && results[0]) {
+                            resolve(results[0]);
+                        } else {
+                            reject(new Error(`Geocoding failed: ${status}`));
+                        }
+                    });
+                });
+                
+                resultDiv.innerHTML = `
+                    <p class="success">✅ Geocoding works!</p>
+                    <p>Test address: ${testAddress}</p>
+                    <p>Result: ${result.formatted_address}</p>
+                    <p>Coordinates: ${result.geometry.location.lat()}, ${result.geometry.location.lng()}</p>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <p class="error">❌ Geocoding failed</p>
+                    <p>${error.message}</p>
+                    <p class="warning">This might indicate:</p>
+                    <ul>
+                        <li>Google Maps API quota exceeded</li>
+                        <li>Invalid API key restrictions</li>
+                        <li>Network issues</li>
+                    </ul>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

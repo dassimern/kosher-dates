@@ -309,7 +309,9 @@ async function loadRestaurants() {
         setTimeout(() => {
             loading.style.display = 'none';
             allRestaurants = [...demoData];
+            populateFilterDropdowns();
             displayRestaurants(allRestaurants);
+            document.getElementById('results-counter').textContent = `Showing ${allRestaurants.length} restaurants`;
         }, 500);
         
         return;
@@ -327,7 +329,9 @@ async function loadRestaurants() {
         if (result.success && result.data) {
             loading.style.display = 'none';
             allRestaurants = result.data;
+            populateFilterDropdowns();
             displayRestaurants(allRestaurants);
+            document.getElementById('results-counter').textContent = `Showing ${allRestaurants.length} restaurants`;
         } else {
             throw new Error(result.message || 'Failed to load restaurants');
         }
@@ -432,43 +436,140 @@ function escapeHtml(text) {
 
 // Store all restaurants for filtering
 let allRestaurants = [];
+let uniqueKashrut = new Set();
+let uniqueCities = new Set();
 
 // Setup search functionality
-document.getElementById('search-input').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase().trim();
-    filterRestaurants(searchTerm);
-});
+document.getElementById('search-input').addEventListener('input', applyFilters);
 
-function filterRestaurants(searchTerm) {
-    const container = document.getElementById('restaurants-container');
+// Setup filter dropdowns
+document.getElementById('kashrut-filter').addEventListener('change', applyFilters);
+document.getElementById('city-filter').addEventListener('change', applyFilters);
+
+// Clear filters button
+document.getElementById('clear-filters-btn').addEventListener('click', clearAllFilters);
+
+function clearAllFilters() {
+    document.getElementById('search-input').value = '';
+    document.getElementById('kashrut-filter').value = '';
+    document.getElementById('city-filter').value = '';
+    applyFilters();
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+    const kashrutFilter = document.getElementById('kashrut-filter').value;
+    const cityFilter = document.getElementById('city-filter').value;
     
-    if (!searchTerm) {
-        // Show all restaurants if search is empty
-        displayRestaurants(allRestaurants);
-        return;
+    let filtered = allRestaurants;
+    
+    // Apply text search across name, address, city and kashrut
+    if (searchTerm) {
+        filtered = filtered.filter(restaurant => {
+            const name = (restaurant.restaurantName || '').toLowerCase();
+            const address = (restaurant.address || '').toLowerCase();
+            const street = (restaurant.street || '').toLowerCase();
+            const city = (restaurant.city || '').toLowerCase();
+            const kashrut = (restaurant.kashrut || '').toLowerCase();
+            
+            return name.includes(searchTerm) || 
+                   address.includes(searchTerm) ||
+                   street.includes(searchTerm) ||
+                   city.includes(searchTerm) ||
+                   kashrut.includes(searchTerm);
+        });
     }
     
-    // Filter restaurants by name, address (or street/city for old format), or kashrut
-    const filtered = allRestaurants.filter(restaurant => {
-        const name = (restaurant.restaurantName || '').toLowerCase();
-        const address = (restaurant.address || '').toLowerCase();
-        const street = (restaurant.street || '').toLowerCase();
-        const city = (restaurant.city || '').toLowerCase();
-        const kashrut = (restaurant.kashrut || '').toLowerCase();
-        
-        return name.includes(searchTerm) || 
-               address.includes(searchTerm) ||
-               street.includes(searchTerm) ||
-               city.includes(searchTerm) ||
-               kashrut.includes(searchTerm);
+    // Apply kashrut filter
+    if (kashrutFilter) {
+        filtered = filtered.filter(restaurant => 
+            (restaurant.kashrut || '') === kashrutFilter
+        );
+    }
+    
+    // Apply city filter
+    if (cityFilter) {
+        filtered = filtered.filter(restaurant => {
+            const restaurantCity = extractCity(restaurant);
+            return restaurantCity === cityFilter;
+        });
+    }
+    
+    displayFilteredRestaurants(filtered);
+}
+
+function extractCity(restaurant) {
+    // Extract city from address or use city field
+    if (restaurant.city) {
+        return restaurant.city;
+    }
+    if (restaurant.address) {
+        // Try to extract city from address (usually after comma)
+        const parts = restaurant.address.split(',');
+        if (parts.length > 1) {
+            return parts[parts.length - 1].trim();
+        }
+    }
+    return '';
+}
+
+function displayFilteredRestaurants(restaurants) {
+    const container = document.getElementById('restaurants-container');
+    const counter = document.getElementById('results-counter');
+    
+    container.innerHTML = '';
+    
+    if (restaurants.length === 0) {
+        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">No restaurants found. Try different filters.</p>';
+        counter.textContent = 'No results found';
+    } else {
+        restaurants.forEach(restaurant => {
+            const card = createRestaurantCard(restaurant);
+            container.appendChild(card);
+        });
+        counter.textContent = `Showing ${restaurants.length} of ${allRestaurants.length} restaurants`;
+    }
+}
+
+function populateFilterDropdowns() {
+    uniqueKashrut.clear();
+    uniqueCities.clear();
+    
+    // Collect unique kashrut and cities
+    allRestaurants.forEach(restaurant => {
+        if (restaurant.kashrut) {
+            uniqueKashrut.add(restaurant.kashrut);
+        }
+        const city = extractCity(restaurant);
+        if (city) {
+            uniqueCities.add(city);
+        }
     });
     
-    displayRestaurants(filtered);
+    // Populate kashrut dropdown
+    const kashrutFilter = document.getElementById('kashrut-filter');
+    kashrutFilter.innerHTML = '<option value="">All Kashrut</option>';
+    Array.from(uniqueKashrut).sort().forEach(kashrut => {
+        const option = document.createElement('option');
+        option.value = kashrut;
+        option.textContent = kashrut;
+        kashrutFilter.appendChild(option);
+    });
     
-    // Show message if no results
-    if (filtered.length === 0) {
-        container.innerHTML = '<p style="color: white; text-align: center; grid-column: 1/-1; font-size: 1.2rem;">No results found.</p>';
-    }
+    // Populate city dropdown
+    const cityFilter = document.getElementById('city-filter');
+    cityFilter.innerHTML = '<option value="">All Cities</option>';
+    Array.from(uniqueCities).sort().forEach(city => {
+        const option = document.createElement('option');
+        option.value = city;
+        option.textContent = city;
+        cityFilter.appendChild(option);
+    });
+}
+
+function filterRestaurants(searchTerm) {
+    // This function is kept for backward compatibility but now uses applyFilters
+    applyFilters();
 }
 
 document.addEventListener('DOMContentLoaded', function() {

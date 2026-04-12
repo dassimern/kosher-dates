@@ -160,8 +160,68 @@
         </div>
 
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="🔍 Search by restaurant name, address or kashrut...">
+            <input type="text" id="search-input" placeholder="🔍 Search by name, city, kashrut...">
         </div>
+
+        <!-- Filter Options -->
+        <div class="filter-container" style="max-width: 800px; margin: 20px auto; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+            <select id="kashrut-filter" class="filter-dropdown">
+                <option value="">🍴 All Kashrut</option>
+            </select>
+            
+            <select id="city-filter" class="filter-dropdown">
+                <option value="">🏙️ All Cities</option>
+            </select>
+            
+            <button id="clear-filters-btn" class="clear-filters-btn">
+                ✕ Clear Filters
+            </button>
+        </div>
+
+        <style>
+            .filter-dropdown {
+                padding: 10px 15px;
+                border-radius: 25px;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                font-size: 0.95rem;
+                font-weight: 500;
+                cursor: pointer;
+                backdrop-filter: blur(10px);
+                min-width: 180px;
+                transition: all 0.3s ease;
+            }
+            
+            .filter-dropdown:hover {
+                background: rgba(255, 255, 255, 0.3);
+                border-color: rgba(255, 255, 255, 0.6);
+            }
+            
+            .filter-dropdown option {
+                background: #5D4E37;
+                color: white;
+            }
+            
+            .clear-filters-btn {
+                padding: 10px 20px;
+                border-radius: 25px;
+                border: 2px solid rgba(255, 107, 107, 0.5);
+                background: rgba(255, 107, 107, 0.3);
+                color: white;
+                font-size: 0.95rem;
+                font-weight: 600;
+                cursor: pointer;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+            }
+            
+            .clear-filters-btn:hover {
+                background: rgba(255, 107, 107, 0.5);
+                border-color: rgba(255, 107, 107, 0.8);
+                transform: scale(1.05);
+            }
+        </style>
 
         <div class="map-stats" id="map-stats">
             Loading restaurants...
@@ -255,6 +315,9 @@
                     loading.style.display = 'none';
                     
                     statsDiv.textContent = `Showing ${allRestaurants.length} restaurants`;
+                    
+                    // Populate filter dropdowns
+                    populateMapFilterDropdowns();
                     
                     // Add markers for all restaurants
                     addMarkersToMap(allRestaurants);
@@ -404,26 +467,99 @@
         }
 
         // Search functionality
-        document.getElementById('search-input').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase().trim();
+        document.getElementById('search-input').addEventListener('input', applyMapFilters);
+        document.getElementById('kashrut-filter').addEventListener('change', applyMapFilters);
+        document.getElementById('city-filter').addEventListener('change', applyMapFilters);
+        document.getElementById('clear-filters-btn').addEventListener('click', clearMapFilters);
+        
+        function clearMapFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('kashrut-filter').value = '';
+            document.getElementById('city-filter').value = '';
+            applyMapFilters();
+        }
+        
+        function applyMapFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const kashrutFilter = document.getElementById('kashrut-filter').value;
+            const cityFilter = document.getElementById('city-filter').value;
             
-            if (!searchTerm) {
-                addMarkersToMap(allRestaurants);
-                return;
+            let filtered = allRestaurants;
+            
+            // Apply text search across name, address, city and kashrut
+            if (searchTerm) {
+                filtered = filtered.filter(restaurant => {
+                    const name = (restaurant.restaurantName || '').toLowerCase();
+                    const address = (restaurant.address || '').toLowerCase();
+                    const kashrut = (restaurant.kashrut || '').toLowerCase();
+                    
+                    return name.includes(searchTerm) || 
+                           address.includes(searchTerm) ||
+                           kashrut.includes(searchTerm);
+                });
             }
             
-            const filtered = allRestaurants.filter(restaurant => {
-                const name = (restaurant.restaurantName || '').toLowerCase();
-                const address = (restaurant.address || '').toLowerCase();
-                const kashrut = (restaurant.kashrut || '').toLowerCase();
-                
-                return name.includes(searchTerm) || 
-                       address.includes(searchTerm) ||
-                       kashrut.includes(searchTerm);
-            });
+            // Apply kashrut filter
+            if (kashrutFilter) {
+                filtered = filtered.filter(restaurant => 
+                    (restaurant.kashrut || '') === kashrutFilter
+                );
+            }
+            
+            // Apply city filter
+            if (cityFilter) {
+                filtered = filtered.filter(restaurant => {
+                    const city = extractCityFromAddress(restaurant.address);
+                    return city === cityFilter;
+                });
+            }
             
             addMarkersToMap(filtered);
-        });
+        }
+        
+        function extractCityFromAddress(address) {
+            if (!address) return '';
+            const parts = address.split(',');
+            if (parts.length > 1) {
+                return parts[parts.length - 1].trim();
+            }
+            return '';
+        }
+        
+        function populateMapFilterDropdowns() {
+            const uniqueKashrut = new Set();
+            const uniqueCities = new Set();
+            
+            allRestaurants.forEach(restaurant => {
+                if (restaurant.kashrut) {
+                    uniqueKashrut.add(restaurant.kashrut);
+                }
+                const city = extractCityFromAddress(restaurant.address);
+                if (city) {
+                    uniqueCities.add(city);
+                }
+            });
+            
+            // Populate kashrut dropdown
+            const kashrutFilter = document.getElementById('kashrut-filter');
+            kashrutFilter.innerHTML = '<option value="">🍴 All Kashrut</option>';
+            Array.from(uniqueKashrut).sort().forEach(kashrut => {
+                const option = document.createElement('option');
+                option.value = kashrut;
+                option.textContent = kashrut;
+                kashrutFilter.appendChild(option);
+            });
+            
+            // Populate city dropdown
+            const cityFilter = document.getElementById('city-filter');
+            cityFilter.innerHTML = '<option value="">🏙️ All Cities</option>';
+            Array.from(uniqueCities).sort().forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                cityFilter.appendChild(option);
+            });
+        }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {

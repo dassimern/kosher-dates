@@ -35,79 +35,169 @@
         </div>
 
         <!-- Filter Options -->
-        <div class="filter-container" style="max-width: 800px; margin: 20px auto; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-            <select id="kashrut-filter" class="filter-dropdown">
-                <option value="">🍴 All Kashrut</option>
-            </select>
-            
-            <select id="city-filter" class="filter-dropdown">
-                <option value="">🏙️ All Cities</option>
-            </select>
-            
-            <button id="clear-filters-btn" class="clear-filters-btn">
-                ✕ Clear Filters
+        <div class="filter-container">
+
+            <!-- Kashrut Filter -->
+            <div class="filter-pill-wrapper" id="kashrut-wrapper">
+                <button class="filter-pill" id="kashrut-btn" onclick="toggleFilterPanel('kashrut')">
+                    🍴 <span id="kashrut-label">All Kashrut</span> <span class="filter-arrow" id="kashrut-arrow">▾</span>
+                </button>
+                <div class="filter-panel" id="kashrut-panel">
+                    <div class="filter-option selected" data-filter="kashrut" data-value="" onclick="selectFilter('kashrut', '', 'All Kashrut', this)">All Kashrut</div>
+                    <!-- Options populated dynamically -->
+                </div>
+            </div>
+
+            <!-- City Filter -->
+            <div class="filter-pill-wrapper" id="city-wrapper">
+                <button class="filter-pill" id="city-btn" onclick="toggleFilterPanel('city')">
+                    🏙️ <span id="city-label">All Cities</span> <span class="filter-arrow" id="city-arrow">▾</span>
+                </button>
+                <div class="filter-panel" id="city-panel">
+                    <div class="filter-option selected" data-filter="city" data-value="" onclick="selectFilter('city', '', 'All Cities', this)">All Cities</div>
+                    <!-- Options populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Clear Button -->
+            <button id="clear-filters-btn" class="clear-filters-btn" style="display:none;">
+                ✕ Clear
             </button>
         </div>
 
         <style>
-            .filter-dropdown {
-                padding: 10px 15px;
+            .filter-container {
+                max-width: 800px;
+                margin: 15px auto;
+                display: flex;
+                gap: 12px;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 0 20px;
+                position: relative;
+                z-index: 100;
+            }
+
+            .filter-pill-wrapper {
+                position: relative;
+            }
+
+            .filter-pill {
+                padding: 10px 18px;
                 border-radius: 25px;
-                border: 2px solid rgba(255, 255, 255, 0.3);
+                border: 2px solid rgba(255, 255, 255, 0.4);
                 background: rgba(255, 255, 255, 0.2);
                 color: white;
                 font-size: 0.95rem;
-                font-weight: 500;
+                font-weight: 600;
                 cursor: pointer;
                 backdrop-filter: blur(10px);
-                min-width: 180px;
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
+                white-space: nowrap;
+                font-family: 'Rubik', sans-serif;
             }
-            
-            .filter-dropdown:hover {
-                background: rgba(255, 255, 255, 0.3);
-                border-color: rgba(255, 255, 255, 0.6);
+
+            .filter-pill:hover, .filter-pill.active {
+                background: rgba(255, 255, 255, 0.35);
+                border-color: rgba(255, 255, 255, 0.7);
             }
-            
-            .filter-dropdown option {
-                background: #5D4E37;
-                color: white;
+
+            .filter-pill.has-selection {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                border-color: #667eea;
             }
-            
+
+            .filter-arrow {
+                font-size: 0.8rem;
+                transition: transform 0.2s ease;
+                display: inline-block;
+            }
+
+            .filter-arrow.open {
+                transform: rotate(180deg);
+            }
+
+            .filter-panel {
+                display: none;
+                position: absolute;
+                top: calc(100% + 8px);
+                left: 0;
+                min-width: 220px;
+                max-height: 280px;
+                overflow-y: auto;
+                background: linear-gradient(135deg, #FFF8DC 0%, #FAEBD7 100%);
+                border-radius: 12px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                border: 2px solid #D4A574;
+                z-index: 1000;
+            }
+
+            .filter-panel.open {
+                display: block;
+                animation: dropDown 0.2s ease;
+            }
+
+            @keyframes dropDown {
+                from { opacity: 0; transform: translateY(-8px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+
+            .filter-option {
+                padding: 12px 16px;
+                cursor: pointer;
+                color: #5D4E37;
+                font-size: 0.95rem;
+                font-weight: 500;
+                border-bottom: 1px solid rgba(212, 165, 116, 0.3);
+                transition: background 0.15s ease;
+            }
+
+            .filter-option:last-child {
+                border-bottom: none;
+            }
+
+            .filter-option:hover {
+                background: rgba(212, 165, 116, 0.2);
+            }
+
+            .filter-option.selected {
+                background: rgba(212, 165, 116, 0.3);
+                font-weight: 700;
+                color: #3D2B1F;
+            }
+
+            .filter-option.selected::before {
+                content: '✓ ';
+                color: #667eea;
+            }
+
             .clear-filters-btn {
-                padding: 10px 20px;
+                padding: 10px 18px;
                 border-radius: 25px;
-                border: 2px solid rgba(255, 107, 107, 0.5);
+                border: 2px solid rgba(255, 107, 107, 0.6);
                 background: rgba(255, 107, 107, 0.3);
                 color: white;
                 font-size: 0.95rem;
                 font-weight: 600;
                 cursor: pointer;
                 backdrop-filter: blur(10px);
-                transition: all 0.3s ease;
+                transition: all 0.2s ease;
+                font-family: 'Rubik', sans-serif;
             }
-            
+
             .clear-filters-btn:hover {
-                background: rgba(255, 107, 107, 0.5);
-                border-color: rgba(255, 107, 107, 0.8);
+                background: rgba(255, 107, 107, 0.6);
                 transform: scale(1.05);
             }
-            
+
+            /* Scrollbar inside filter panel */
+            .filter-panel::-webkit-scrollbar { width: 6px; }
+            .filter-panel::-webkit-scrollbar-track { background: transparent; }
+            .filter-panel::-webkit-scrollbar-thumb { background: #D4A574; border-radius: 3px; }
+
             @media (max-width: 768px) {
-                .filter-container {
-                    padding: 0 20px;
-                }
-                
-                .filter-dropdown {
-                    min-width: 140px;
-                    font-size: 0.9rem;
-                    padding: 8px 12px;
-                }
-                
-                .clear-filters-btn {
-                    font-size: 0.9rem;
-                    padding: 8px 16px;
-                }
+                .filter-pill { font-size: 0.88rem; padding: 9px 14px; }
+                .filter-panel { min-width: 180px; }
             }
         </style>
 

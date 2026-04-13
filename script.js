@@ -439,27 +439,105 @@ let allRestaurants = [];
 let uniqueKashrut = new Set();
 let uniqueCities = new Set();
 
+// Active filter state
+let activeFilters = { kashrut: '', city: '' };
+
 // Setup search functionality
 document.getElementById('search-input').addEventListener('input', applyFilters);
-
-// Setup filter dropdowns
-document.getElementById('kashrut-filter').addEventListener('change', applyFilters);
-document.getElementById('city-filter').addEventListener('change', applyFilters);
 
 // Clear filters button
 document.getElementById('clear-filters-btn').addEventListener('click', clearAllFilters);
 
-function clearAllFilters() {
-    document.getElementById('search-input').value = '';
-    document.getElementById('kashrut-filter').value = '';
-    document.getElementById('city-filter').value = '';
+// Close panels when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.filter-pill-wrapper')) {
+        closeAllFilterPanels();
+    }
+});
+
+function toggleFilterPanel(type) {
+    const panel = document.getElementById(type + '-panel');
+    const arrow = document.getElementById(type + '-arrow');
+    const isOpen = panel.classList.contains('open');
+
+    // Close all first
+    closeAllFilterPanels();
+
+    if (!isOpen) {
+        panel.classList.add('open');
+        arrow.classList.add('open');
+        document.getElementById(type + '-btn').classList.add('active');
+    }
+}
+
+function closeAllFilterPanels() {
+    ['kashrut', 'city'].forEach(type => {
+        document.getElementById(type + '-panel').classList.remove('open');
+        document.getElementById(type + '-arrow').classList.remove('open');
+        document.getElementById(type + '-btn').classList.remove('active');
+    });
+}
+
+function selectFilter(type, value, label, el) {
+    activeFilters[type] = value;
+
+    // Update button label
+    document.getElementById(type + '-label').textContent = label;
+
+    // Style: highlight pill if a real filter is selected
+    const btn = document.getElementById(type + '-btn');
+    if (value) {
+        btn.classList.add('has-selection');
+    } else {
+        btn.classList.remove('has-selection');
+    }
+
+    // Update selected state in the list
+    el.closest('.filter-panel').querySelectorAll('.filter-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    el.classList.add('selected');
+
+    // Show/hide clear button
+    const hasAnyFilter = activeFilters.kashrut || activeFilters.city || document.getElementById('search-input').value;
+    document.getElementById('clear-filters-btn').style.display = hasAnyFilter ? 'block' : 'none';
+
+    closeAllFilterPanels();
     applyFilters();
 }
 
+function clearAllFilters() {
+    document.getElementById('search-input').value = '';
+    activeFilters = { kashrut: '', city: '' };
+
+    // Reset labels
+    document.getElementById('kashrut-label').textContent = 'All Kashrut';
+    document.getElementById('city-label').textContent = 'All Cities';
+
+    // Reset pill styles
+    document.getElementById('kashrut-btn').classList.remove('has-selection');
+    document.getElementById('city-btn').classList.remove('has-selection');
+
+    // Reset selected options
+    document.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('selected'));
+    document.querySelectorAll('.filter-option[data-value=""]').forEach(opt => opt.classList.add('selected'));
+
+    document.getElementById('clear-filters-btn').style.display = 'none';
+    applyFilters();
+}
+
+// Make functions available globally (called from onclick in HTML)
+window.toggleFilterPanel = toggleFilterPanel;
+window.selectFilter = selectFilter;
+
 function applyFilters() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
-    const kashrutFilter = document.getElementById('kashrut-filter').value;
-    const cityFilter = document.getElementById('city-filter').value;
+    const kashrutFilter = activeFilters.kashrut;
+    const cityFilter = activeFilters.city;
+
+    // Show/hide clear button
+    const hasAnyFilter = kashrutFilter || cityFilter || searchTerm;
+    document.getElementById('clear-filters-btn').style.display = hasAnyFilter ? 'block' : 'none';
     
     let filtered = allRestaurants;
     
@@ -499,15 +577,29 @@ function applyFilters() {
 }
 
 function extractCity(restaurant) {
-    // Extract city from address or use city field
+    // Use city field directly if available
     if (restaurant.city) {
         return restaurant.city;
     }
     if (restaurant.address) {
-        // Try to extract city from address (usually after comma)
-        const parts = restaurant.address.split(',');
-        if (parts.length > 1) {
-            return parts[parts.length - 1].trim();
+        // Google Places format: "Street, City, PostalCode, ישראל"
+        // We need to skip: country names, postal codes (pure numbers)
+        const parts = restaurant.address.split(',').map(p => p.trim()).filter(p => p);
+        
+        const ignoredParts = ['ישראל', 'israel', 'ישראל'];
+        
+        const meaningfulParts = parts.filter(p => {
+            const lower = p.toLowerCase();
+            // Skip country names
+            if (ignoredParts.includes(lower)) return false;
+            // Skip postal codes (purely numeric)
+            if (/^\d+$/.test(p)) return false;
+            return true;
+        });
+        
+        // City is the last meaningful part (after the street)
+        if (meaningfulParts.length > 1) {
+            return meaningfulParts[meaningfulParts.length - 1];
         }
     }
     return '';
@@ -534,36 +626,37 @@ function displayFilteredRestaurants(restaurants) {
 function populateFilterDropdowns() {
     uniqueKashrut.clear();
     uniqueCities.clear();
-    
-    // Collect unique kashrut and cities
+
     allRestaurants.forEach(restaurant => {
-        if (restaurant.kashrut) {
-            uniqueKashrut.add(restaurant.kashrut);
-        }
+        if (restaurant.kashrut) uniqueKashrut.add(restaurant.kashrut);
         const city = extractCity(restaurant);
-        if (city) {
-            uniqueCities.add(city);
-        }
+        if (city) uniqueCities.add(city);
     });
-    
-    // Populate kashrut dropdown
-    const kashrutFilter = document.getElementById('kashrut-filter');
-    kashrutFilter.innerHTML = '<option value="">All Kashrut</option>';
+
+    // Populate kashrut panel
+    const kashrutPanel = document.getElementById('kashrut-panel');
+    kashrutPanel.innerHTML = `<div class="filter-option selected" data-filter="kashrut" data-value="" onclick="selectFilter('kashrut', '', 'All Kashrut', this)">All Kashrut</div>`;
     Array.from(uniqueKashrut).sort().forEach(kashrut => {
-        const option = document.createElement('option');
-        option.value = kashrut;
-        option.textContent = kashrut;
-        kashrutFilter.appendChild(option);
+        const div = document.createElement('div');
+        div.className = 'filter-option';
+        div.setAttribute('data-filter', 'kashrut');
+        div.setAttribute('data-value', kashrut);
+        div.setAttribute('onclick', `selectFilter('kashrut', '${kashrut.replace(/'/g, "\\'")}', '${kashrut.replace(/'/g, "\\'")}', this)`);
+        div.textContent = kashrut;
+        kashrutPanel.appendChild(div);
     });
-    
-    // Populate city dropdown
-    const cityFilter = document.getElementById('city-filter');
-    cityFilter.innerHTML = '<option value="">All Cities</option>';
+
+    // Populate city panel
+    const cityPanel = document.getElementById('city-panel');
+    cityPanel.innerHTML = `<div class="filter-option selected" data-filter="city" data-value="" onclick="selectFilter('city', '', 'All Cities', this)">All Cities</div>`;
     Array.from(uniqueCities).sort().forEach(city => {
-        const option = document.createElement('option');
-        option.value = city;
-        option.textContent = city;
-        cityFilter.appendChild(option);
+        const div = document.createElement('div');
+        div.className = 'filter-option';
+        div.setAttribute('data-filter', 'city');
+        div.setAttribute('data-value', city);
+        div.setAttribute('onclick', `selectFilter('city', '${city.replace(/'/g, "\\'")}', '${city.replace(/'/g, "\\'")}', this)`);
+        div.textContent = city;
+        cityPanel.appendChild(div);
     });
 }
 
